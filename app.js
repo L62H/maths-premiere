@@ -100,6 +100,7 @@ function bindUI() {
   document.getElementById('closeSidebar').addEventListener('click', () => toggleMenu(false));
   document.getElementById('sidebarBackdrop').addEventListener('click', () => toggleMenu(false));
   document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+  document.getElementById('backBtn').addEventListener('click', goBack);
   document.getElementById('searchBtn').addEventListener('click', () => {
     document.body.classList.add('search-open');
     setTimeout(() => document.getElementById('searchInput').focus(), 50);
@@ -175,11 +176,33 @@ function route() {
   renderRoute();
 }
 
+function goBack() {
+  const h = location.hash.replace(/^#/, '') || '/';
+  if (h.startsWith('/view/')) {
+    if (state.currentChapter) location.hash = '/chapter/' + encodeURIComponent(state.currentChapter.id);
+    else location.hash = '/';
+  } else if (h.startsWith('/chapter/') || h === '/recent' || h === '/favorites' || h === '/search') {
+    location.hash = '/';
+  } else {
+    history.back();
+  }
+}
+
+function updateBackButton() {
+  const h = state.currentRoute || '/';
+  const btn = document.getElementById('backBtn');
+  if (!btn) return;
+  btn.hidden = (h === '/' || h === '');
+}
+
 function renderRoute() {
   const hash = state.currentRoute || '/';
 
   // Close viewer first if route changed away from /view/
   if (!hash.startsWith('/view/')) closeViewer(true);
+
+  // Visibility of the global Retour button
+  updateBackButton();
 
   // sidebar active state
   document.querySelectorAll('.chap, .side-link').forEach(el => el.classList.remove('active'));

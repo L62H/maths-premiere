@@ -162,6 +162,27 @@ svg { display: block; width: 20px; height: 20px; }
   transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
   flex: none;
 }
+.back-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 38px; padding: 0 14px 0 8px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13.5px; font-weight: 500;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease), transform var(--fast) var(--ease);
+  flex: none;
+}
+.back-btn:hover {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+.back-btn:active { transform: scale(.96); }
+.back-btn svg { width: 18px; height: 18px; }
+.back-btn span { padding-right: 2px; }
+@media (max-width: 520px) {
+  .back-btn span { display: none; }
+  .back-btn { width: 38px; padding: 0; justify-content: center; }
+}
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .icon-btn:active { transform: scale(.97); }
 
