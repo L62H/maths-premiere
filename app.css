@@ -272,22 +272,63 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
 
 /* ===== Hero (home) ===== */
 .hero {
-  padding: 18px 4px 36px;
+  position: relative;
+  padding: 28px 4px 40px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 36px;
+  overflow: hidden;
 }
+/* Subtle dot grid backdrop */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -20px -20px auto auto;
+  width: 380px; height: 380px;
+  background-image: radial-gradient(circle, var(--line-2) 1px, transparent 1.4px);
+  background-size: 18px 18px;
+  -webkit-mask-image: radial-gradient(closest-side at top right, black 30%, transparent 75%);
+          mask-image: radial-gradient(closest-side at top right, black 30%, transparent 75%);
+  opacity: .55;
+  pointer-events: none;
+}
+/* Floating math glyph (very subtle, decorative only) */
+.hero::after {
+  content: '∫';
+  position: absolute;
+  top: -14px; right: 6%;
+  font-family: 'Cambria Math', 'STIX Two Math', Georgia, serif;
+  font-size: clamp(150px, 18vw, 260px);
+  font-weight: 300;
+  line-height: 1;
+  color: var(--gold);
+  opacity: .07;
+  pointer-events: none;
+  transform: rotate(8deg);
+}
+.hero > * { position: relative; z-index: 1; }
 .hero .eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
   font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
   color: var(--gold); font-weight: 600; margin-bottom: 14px;
 }
+.hero .eyebrow::before {
+  content: ''; width: 22px; height: 1px;
+  background: var(--gold);
+}
 .hero h1 {
   margin: 0 0 14px;
-  font-size: clamp(28px, 4vw, 44px);
+  font-size: clamp(28px, 4vw, 46px);
   font-weight: 600;
-  letter-spacing: -.02em;
-  line-height: 1.1;
+  letter-spacing: -.025em;
+  line-height: 1.08;
 }
-.hero h1 .gold { color: var(--gold); }
+.hero h1 .gold {
+  color: var(--gold);
+  background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 .hero p {
   margin: 0;
   font-size: 16px; color: var(--text-2);
@@ -305,14 +346,26 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
 .section { margin-bottom: 44px; }
 .section-head {
   display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px; margin-bottom: 16px;
+  gap: 12px; margin-bottom: 18px;
 }
 .section-head h2 {
   margin: 0;
   font-size: 18px; font-weight: 600;
   letter-spacing: -.01em;
+  position: relative;
+  padding-left: 14px;
 }
-.section-head .right { color: var(--text-3); font-size: 13px; }
+.section-head h2::before {
+  content: '';
+  position: absolute; left: 0; top: 4px; bottom: 4px;
+  width: 3px; border-radius: 2px;
+  background: var(--gold);
+}
+.section-head .right {
+  color: var(--text-3); font-size: 13px;
+  transition: color var(--fast) var(--ease);
+}
+a.right:hover { color: var(--gold); }
 
 /* ===== Chapter grid (home) ===== */
 .chap-grid {
@@ -329,10 +382,18 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
   transition: transform var(--base) var(--ease), border-color var(--base) var(--ease), box-shadow var(--base) var(--ease), background var(--base) var(--ease);
   overflow: hidden;
 }
+.chap-card::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--slow) var(--ease);
+}
 .chap-card::after {
   content: ''; position: absolute; inset: 0;
   border-radius: inherit; pointer-events: none;
-  background: linear-gradient(135deg, transparent 70%, var(--gold-soft) 100%);
+  background: linear-gradient(135deg, transparent 60%, var(--gold-soft) 100%);
   opacity: 0; transition: opacity var(--base) var(--ease);
 }
 .chap-card:hover {
@@ -340,6 +401,7 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
   border-color: var(--gold-line);
   box-shadow: var(--shadow-2);
 }
+.chap-card:hover::before { transform: scaleX(1); }
 .chap-card:hover::after { opacity: 1; }
 .chap-card .card-top {
   display: flex; align-items: center; gap: 12px;
@@ -377,7 +439,17 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
 
 /* ===== Chapter detail ===== */
 .chapter-head {
+  position: relative;
   margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.chapter-head::after {
+  content: '';
+  position: absolute; left: 0; bottom: -1px;
+  width: 64px; height: 2px;
+  background: var(--gold);
+  border-radius: 2px;
 }
 .crumb {
   display: inline-flex; align-items: center; gap: 6px;
@@ -431,6 +503,7 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 .item-card {
+  position: relative;
   display: flex; flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -441,11 +514,21 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
   text-align: left;
   width: 100%;
 }
+.item-card::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--base) var(--ease);
+}
 .item-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: var(--gold-line);
   box-shadow: var(--shadow-2);
 }
+.item-card:hover::after { transform: scaleX(1); }
 .item-card .item-preview {
   height: 130px;
   background: linear-gradient(135deg, var(--surface-2), var(--surface-3));

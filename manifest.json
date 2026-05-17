@@ -1,7 +1,7 @@
 {
     "title":  "Mathématiques — Première Spécialité",
     "subtitle":  "Cours, exercices \u0026 annales",
-    "generatedAt":  "2026-05-17 14:54:05",
+    "generatedAt":  "2026-05-17 16:06:33",
     "chapters":  [
                      {
                          "id":  "1-second-degr",
@@ -14,7 +14,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/1%20Second%20degr%C3%A9/1%20second%20degr%C3%A9.pdf",
-                                           "sizeKB":  2797,
+                                           "sizeKB":  2789,
                                            "originalUrl":  "assets/original/1%20Second%20degr%C3%A9/1%20second%20degr%C3%A9.pptx"
                                        }
                                    ]
@@ -30,7 +30,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/2%20les%20suites/Diaporama%20suite.pdf",
-                                           "sizeKB":  1876,
+                                           "sizeKB":  1871,
                                            "originalUrl":  "assets/original/2%20les%20suites/Diaporama%20suite.pptx"
                                        },
                                        {
@@ -38,7 +38,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/2%20les%20suites/Suites%20arithm%C3%A9tiques.pdf",
-                                           "sizeKB":  1012,
+                                           "sizeKB":  1008,
                                            "originalUrl":  "assets/original/2%20les%20suites/Suites%20arithm%C3%A9tiques.pptx"
                                        },
                                        {
@@ -46,7 +46,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/2%20les%20suites/Suites%20g%C3%A9om%C3%A9tries.pdf",
-                                           "sizeKB":  1908,
+                                           "sizeKB":  1903,
                                            "originalUrl":  "assets/original/2%20les%20suites/Suites%20g%C3%A9om%C3%A9tries.pptx"
                                        }
                                    ]
@@ -69,7 +69,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/3%20D%C3%A9rivation/D%C3%A9rivation.pdf",
-                                           "sizeKB":  2230,
+                                           "sizeKB":  2223,
                                            "originalUrl":  "assets/original/3%20D%C3%A9rivation/D%C3%A9rivation.pptx"
                                        }
                                    ]
@@ -92,7 +92,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e.pdf",
-                                           "sizeKB":  1107,
+                                           "sizeKB":  1041,
                                            "originalUrl":  "assets/original/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e.pptx"
                                        },
                                        {
@@ -100,7 +100,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e2.pdf",
-                                           "sizeKB":  1550,
+                                           "sizeKB":  1481,
                                            "originalUrl":  "assets/original/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e2.pptx"
                                        },
                                        {
@@ -123,7 +123,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/5%20Probabilit%C3%A9%20conditionnelle/Probabilit%C3%A9%20conditionnelle.pdf",
-                                           "sizeKB":  1315,
+                                           "sizeKB":  1303,
                                            "originalUrl":  "assets/original/5%20Probabilit%C3%A9%20conditionnelle/Probabilit%C3%A9%20conditionnelle.pptx"
                                        }
                                    ]
@@ -139,7 +139,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/6%20D%C3%A9rivation%20%20applications%20%C3%A0%20l\u0027%C3%A9tude%20de%20fonctions/D%C3%A9rivation%20%20applications%20%C3%A0%20l\u0027%C3%A9tude%20de%20fonctions.pdf",
-                                           "sizeKB":  1956,
+                                           "sizeKB":  1954,
                                            "originalUrl":  "assets/original/6%20D%C3%A9rivation%20%20applications%20%C3%A0%20l\u0027%C3%A9tude%20de%20fonctions/D%C3%A9rivation%20%20applications%20%C3%A0%20l\u0027%C3%A9tude%20de%20fonctions.pptx"
                                        }
                                    ]
@@ -162,7 +162,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/7%20Cosinus%20et%20Sinus/Cosinus%20sinus.pdf",
-                                           "sizeKB":  1950,
+                                           "sizeKB":  1938,
                                            "originalUrl":  "assets/original/7%20Cosinus%20et%20Sinus/Cosinus%20sinus.pptx"
                                        },
                                        {
@@ -199,7 +199,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/8%20Fonction%20exponentielle/La%20fonction%20exponentielle.pdf",
-                                           "sizeKB":  2384,
+                                           "sizeKB":  2376,
                                            "originalUrl":  "assets/original/8%20Fonction%20exponentielle/La%20fonction%20exponentielle.pptx"
                                        }
                                    ]
@@ -215,7 +215,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/9%20Variable%20al%C3%A9atoire/Variable%20al%C3%A9atoire.pdf",
-                                           "sizeKB":  2027,
+                                           "sizeKB":  2015,
                                            "originalUrl":  "assets/original/9%20Variable%20al%C3%A9atoire/Variable%20al%C3%A9atoire.pptx"
                                        }
                                    ]
@@ -231,7 +231,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/10%20Produit%20scalaire/Le%20produit%20scalaire.pdf",
-                                           "sizeKB":  1927,
+                                           "sizeKB":  1920,
                                            "originalUrl":  "assets/original/10%20Produit%20scalaire/Le%20produit%20scalaire.pptx"
                                        },
                                        {
