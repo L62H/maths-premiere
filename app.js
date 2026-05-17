@@ -137,8 +137,8 @@ function bindUI() {
       else if (e.key === 'End')  { e.preventDefault(); gotoPage(state.pageCount); }
       else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomBy(0.15); }
       else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomBy(-0.15); }
-      else if (e.key === '0') { e.preventDefault(); setZoom('fit'); }
       else if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
+      else if (e.key.toLowerCase() === 't') { e.preventDefault(); toggleThumbs(); }
       else if (e.key === 'Escape') { e.preventDefault(); closeViewer(); }
     }
   });
@@ -150,9 +150,14 @@ function bindUI() {
   document.getElementById('vPage').addEventListener('change', e => gotoPage(parseInt(e.target.value, 10) || 1));
   document.getElementById('vZoomIn').addEventListener('click', () => zoomBy(0.15));
   document.getElementById('vZoomOut').addEventListener('click', () => zoomBy(-0.15));
-  document.getElementById('vFit').addEventListener('click', () => setZoom('fit'));
   document.getElementById('vFav').addEventListener('click', toggleFavCurrent);
   document.getElementById('vFs').addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', () => {
+    const on  = document.querySelector('#vFs .ic-fs-on');
+    const off = document.querySelector('#vFs .ic-fs-off');
+    if (document.fullscreenElement) { on.hidden = true; off.hidden = false; }
+    else                           { on.hidden = false; off.hidden = true; }
+  });
   document.getElementById('vThumbsToggle').addEventListener('click', toggleThumbs);
 }
 

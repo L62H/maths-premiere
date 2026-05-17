@@ -6,7 +6,10 @@
 <meta name="theme-color" content="#0b0b0d" />
 <title>Mathématiques — Première Spécialité</title>
 <link rel="preconnect" href="https://rsms.me/" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" />
 <link rel="stylesheet" href="app.css" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231a1a1c'/%3E%3Ctext x='32' y='44' font-family='Inter,system-ui' font-weight='700' font-size='34' fill='%23c5a572' text-anchor='middle'%3E%CE%A3%3C/text%3E%3C/svg%3E" />
 </head>
@@ -68,6 +71,25 @@
 
 <main id="main" class="main" tabindex="-1"></main>
 
+<footer class="site-foot">
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <span class="brand-mark" aria-hidden="true">Σ</span>
+      <span>
+        <strong>Mathématiques</strong>
+        <em>Première · Spécialité</em>
+      </span>
+    </div>
+    <p class="foot-tag">Cours, diaporamas, exercices et annales — un seul endroit, sur tous vos appareils.</p>
+    <div class="foot-line"></div>
+    <div class="foot-meta">
+      <span>© 2026 · Tous droits réservés</span>
+      <span class="dot">·</span>
+      <span>Conçu avec soin</span>
+    </div>
+  </div>
+</footer>
+
 <div id="viewer" class="viewer" hidden aria-hidden="true">
   <div class="viewer-bar">
     <button id="vBack" class="icon-btn" aria-label="Retour">
@@ -94,9 +116,6 @@
       <button id="vZoomIn" class="icon-btn" aria-label="Zoomer" title="Zoomer (+)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
       </button>
-      <button id="vFit" class="icon-btn" aria-label="Ajuster" title="Ajuster à la page (0)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></svg>
-      </button>
       <button id="vThumbsToggle" class="icon-btn" aria-label="Afficher / masquer les vignettes" title="Vignettes (T)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.7" fill="none"/><rect x="3" y="14" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M12 6h8M12 12h8M12 18h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
       </button>
@@ -111,7 +130,8 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
       </a>
       <button id="vFs" class="icon-btn" aria-label="Plein écran" title="Plein écran (F)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-fs-on"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-fs-off" hidden><path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       </button>
     </div>
   </div>
