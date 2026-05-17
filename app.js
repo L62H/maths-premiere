@@ -153,6 +153,7 @@ function bindUI() {
   document.getElementById('vFit').addEventListener('click', () => setZoom('fit'));
   document.getElementById('vFav').addEventListener('click', toggleFavCurrent);
   document.getElementById('vFs').addEventListener('click', toggleFullscreen);
+  document.getElementById('vThumbsToggle').addEventListener('click', toggleThumbs);
 }
 
 function toggleMenu(open) {
@@ -565,6 +566,10 @@ async function openViewer(chapterId, idx) {
   const viewer = document.getElementById('viewer');
   viewer.hidden = false;
   viewer.setAttribute('aria-hidden', 'false');
+  // Restore thumbnail panel preference (default: off for cleaner presentation feel)
+  const thumbsPref = localStorage.getItem('mp1.thumbs') || 'off';
+  viewer.classList.toggle('thumbs-off', thumbsPref === 'off');
+  document.getElementById('vThumbsToggle').classList.toggle('active', thumbsPref === 'on');
   document.getElementById('vTitle').textContent = item.title || item.label;
   document.getElementById('vDownload').href = item.url;
   document.getElementById('vDownload').setAttribute('download', (item.title || item.label) + '.pdf');
@@ -587,18 +592,28 @@ async function openViewer(chapterId, idx) {
     document.getElementById('vPages').textContent = state.pageCount;
     document.getElementById('vPage').max = state.pageCount;
 
-    // Render all pages as placeholders, then render visible ones
+    // Build one slot per page; the slot fills the viewport, the canvas fits inside.
     const wrap = document.getElementById('vCanvasWrap');
     for (let p = 1; p <= state.pageCount; p++) {
+      const slot = document.createElement('div');
+      slot.className = 'slide-slot';
+      slot.dataset.page = p;
+      slot.dataset.loading = 'true';
+      slot.addEventListener('click', onSlotClick);
       const canvas = document.createElement('canvas');
       canvas.className = 'page-canvas';
       canvas.dataset.page = p;
-      canvas.dataset.loading = 'true';
-      // initial sizing (approximate, will refine on render)
-      canvas.style.width = '100%';
-      canvas.style.maxWidth = '900px';
-      canvas.style.aspectRatio = '1 / 1.414';
-      wrap.appendChild(canvas);
+      slot.appendChild(canvas);
+      // Hover side nav arrows (visible on mouse over)
+      const navL = document.createElement('div');
+      navL.className = 'slot-nav left';
+      navL.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+      const navR = document.createElement('div');
+      navR.className = 'slot-nav right';
+      navR.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+      slot.appendChild(navL);
+      slot.appendChild(navR);
+      wrap.appendChild(slot);
       state.pageCanvases.set(p, canvas);
     }
     // Render thumbnails column
@@ -668,7 +683,7 @@ function renderThumbsAll() {
 
 function observePages() {
   const scroll = document.getElementById('vScroll');
-  // Render-trigger observer with wide margin (load nearby pages)
+  // Render-trigger observer with horizontal margin so adjacent slides preload
   const ioRender = new IntersectionObserver(async (entries) => {
     for (const e of entries) {
       if (e.isIntersecting) {
@@ -676,17 +691,16 @@ function observePages() {
         renderPage(p);
       }
     }
-  }, { root: scroll, rootMargin: '400px 0px', threshold: 0.01 });
-  // Tight observer to track which page is most visible (no margin, high threshold)
+  }, { root: scroll, rootMargin: '0px 200% 0px 200%', threshold: 0.01 });
+  // Active-page detection: which slot is most visible horizontally
   const ioActive = new IntersectionObserver((entries) => {
     if (state.suppressActiveUpdate && Date.now() < state.suppressActiveUpdate) return;
-    // pick the entry with highest ratio
     let best = null;
     for (const e of entries) {
       if (!e.isIntersecting) continue;
       if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
     }
-    if (best && best.intersectionRatio > 0.35) {
+    if (best && best.intersectionRatio > 0.5) {
       const p = parseInt(best.target.dataset.page, 10);
       if (state.page !== p) {
         state.page = p;
@@ -694,8 +708,12 @@ function observePages() {
         updateActiveThumb();
       }
     }
-  }, { root: scroll, threshold: [0, 0.35, 0.6, 0.9] });
-  state.pageCanvases.forEach(c => { ioRender.observe(c); ioActive.observe(c); });
+  }, { root: scroll, threshold: [0, 0.5, 0.8, 1] });
+  // Observe SLOTS (the canvases now live inside slots)
+  document.querySelectorAll('.slide-slot').forEach(slot => {
+    ioRender.observe(slot);
+    ioActive.observe(slot);
+  });
 }
 
 async function renderPage(p) {
@@ -704,40 +722,56 @@ async function renderPage(p) {
   canvas.dataset.rendered = 'true';
   try {
     const page = await state.pdf.getPage(p);
-    const wrap = document.getElementById('vScroll');
-    const wrapW = wrap.clientWidth - 48; // padding
+    const slot = canvas.parentElement;
+    // available area inside the slot (slot has padding via CSS)
+    const slotRect = slot.getBoundingClientRect();
+    const cs = getComputedStyle(slot);
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const padY = parseFloat(cs.paddingTop)  + parseFloat(cs.paddingBottom);
+    const availW = Math.max(100, slotRect.width  - padX);
+    const availH = Math.max(100, slotRect.height - padY);
     const vp1 = page.getViewport({ scale: 1 });
     let scale;
     if (state.zoomMode === 'fit') {
-      scale = Math.min(wrapW / vp1.width, 1.6);
+      // fit inside the slot — both width AND height
+      scale = Math.min(availW / vp1.width, availH / vp1.height);
     } else {
       scale = state.zoomScale;
     }
+    if (!isFinite(scale) || scale <= 0) scale = 1;
     const dpr = window.devicePixelRatio || 1;
     const vp = page.getViewport({ scale: scale * dpr });
     canvas.width = vp.width;
     canvas.height = vp.height;
-    // Set CSS aspect-ratio so any later width reflow keeps the page proportional.
-    // We do NOT set an inline pixel height — that would not auto-update if the
-    // canvas later shrinks due to max-width:100% (which caused vertical stretching).
     canvas.style.aspectRatio = `${vp1.width} / ${vp1.height}`;
-    canvas.style.width = (vp.width / dpr) + 'px';
-    canvas.style.height = 'auto';
-    delete canvas.dataset.loading;
+    // Don't set inline width/height: let max-width/max-height in CSS keep canvas
+    // inside the slot while preserving aspect via aspect-ratio.
+    canvas.style.width = '';
+    canvas.style.height = '';
+    delete slot.dataset.loading;
     await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
   } catch (e) {
     delete canvas.dataset.rendered;
   }
 }
 
+function onSlotClick(e) {
+  // Ignore clicks on the explicit hover arrows (their own handler runs)
+  if (e.target.closest('.slot-nav')) return;
+  const slot = e.currentTarget;
+  const r = slot.getBoundingClientRect();
+  const xRel = (e.clientX - r.left) / r.width;
+  if (xRel > 0.5) gotoPage(state.page + 1);
+  else            gotoPage(state.page - 1);
+}
+
 function gotoPage(p) {
   p = Math.max(1, Math.min(state.pageCount, p));
   state.page = p;
-  // suppress IO-driven active updates for the duration of smooth scroll
   state.suppressActiveUpdate = Date.now() + 900;
-  const canvas = state.pageCanvases.get(p);
-  if (canvas) {
-    canvas.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const slot = document.querySelector(`.slide-slot[data-page="${p}"]`);
+  if (slot) {
+    slot.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
   }
   updatePageInput();
   updateActiveThumb();
@@ -783,6 +817,20 @@ function toggleFullscreen() {
   const v = document.getElementById('viewer');
   if (!document.fullscreenElement) v.requestFullscreen?.();
   else document.exitFullscreen?.();
+}
+
+function toggleThumbs() {
+  const v = document.getElementById('viewer');
+  const off = v.classList.toggle('thumbs-off');
+  document.getElementById('vThumbsToggle').classList.toggle('active', !off);
+  localStorage.setItem('mp1.thumbs', off ? 'off' : 'on');
+  // Re-render visible page since slot width changed
+  setTimeout(() => {
+    for (const c of state.pageCanvases.values()) c.dataset.rendered = '';
+    renderPage(state.page);
+    // also gotoPage to keep scroll position aligned
+    gotoPage(state.page);
+  }, 280);
 }
 
 // ----------------------------- Storage helpers -------------------------
@@ -840,9 +888,18 @@ function toast(msg) {
   toast._t = setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.hidden = true, 300); }, 1600);
 }
 
-// Update zoom display on fit when initial render finishes
+// Re-render on viewer resize (debounced), and re-snap to current page
+let _resizeTimer = null;
 new ResizeObserver(() => {
-  if (!state.pdf || state.zoomMode !== 'fit') return;
-  for (const [p, c] of state.pageCanvases) { c.dataset.rendered = ''; }
-  renderPage(state.page);
+  if (!state.pdf) return;
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    if (state.zoomMode === 'fit') {
+      for (const [, c] of state.pageCanvases) c.dataset.rendered = '';
+      renderPage(state.page);
+    }
+    gotoPage(state.page);
+  }, 180);
 }).observe(document.getElementById('vScroll'));
+
+// Touch swipe (mobile) — handled natively by scroll-snap, no extra JS needed
