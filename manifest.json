@@ -1,7 +1,7 @@
 {
     "title":  "Mathématiques — Première Spécialité",
     "subtitle":  "Cours, exercices \u0026 annales",
-    "generatedAt":  "2026-05-17 16:06:33",
+    "generatedAt":  "2026-05-17 16:46:44",
     "chapters":  [
                      {
                          "id":  "1-second-degr",
@@ -14,7 +14,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/1%20Second%20degr%C3%A9/1%20second%20degr%C3%A9.pdf",
-                                           "sizeKB":  2789,
+                                           "sizeKB":  2788,
                                            "originalUrl":  "assets/original/1%20Second%20degr%C3%A9/1%20second%20degr%C3%A9.pptx"
                                        }
                                    ]
@@ -30,7 +30,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/2%20les%20suites/Diaporama%20suite.pdf",
-                                           "sizeKB":  1871,
+                                           "sizeKB":  1870,
                                            "originalUrl":  "assets/original/2%20les%20suites/Diaporama%20suite.pptx"
                                        },
                                        {
@@ -92,7 +92,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e.pdf",
-                                           "sizeKB":  1041,
+                                           "sizeKB":  1043,
                                            "originalUrl":  "assets/original/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e.pptx"
                                        },
                                        {
@@ -100,7 +100,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e2.pdf",
-                                           "sizeKB":  1481,
+                                           "sizeKB":  1484,
                                            "originalUrl":  "assets/original/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e2.pptx"
                                        },
                                        {
@@ -199,7 +199,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/8%20Fonction%20exponentielle/La%20fonction%20exponentielle.pdf",
-                                           "sizeKB":  2376,
+                                           "sizeKB":  2374,
                                            "originalUrl":  "assets/original/8%20Fonction%20exponentielle/La%20fonction%20exponentielle.pptx"
                                        }
                                    ]
@@ -215,7 +215,7 @@
                                            "category":  "diaporama",
                                            "kind":  "pptx",
                                            "url":  "assets/pdf/9%20Variable%20al%C3%A9atoire/Variable%20al%C3%A9atoire.pdf",
-                                           "sizeKB":  2015,
+                                           "sizeKB":  2014,
                                            "originalUrl":  "assets/original/9%20Variable%20al%C3%A9atoire/Variable%20al%C3%A9atoire.pptx"
                                        }
                                    ]
