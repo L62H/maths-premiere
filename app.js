@@ -5,6 +5,7 @@
 // =====================================================================
 
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
+import { TRIVIA } from './trivia.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
 
@@ -152,12 +153,13 @@ function bindUI() {
   document.getElementById('vZoomOut').addEventListener('click', () => zoomBy(-0.15));
   document.getElementById('vFav').addEventListener('click', toggleFavCurrent);
   document.getElementById('vFs').addEventListener('click', toggleFullscreen);
-  document.addEventListener('fullscreenchange', () => {
-    const on  = document.querySelector('#vFs .ic-fs-on');
-    const off = document.querySelector('#vFs .ic-fs-off');
-    if (document.fullscreenElement) { on.hidden = true; off.hidden = false; }
-    else                           { on.hidden = false; off.hidden = true; }
+  document.getElementById('vExitImmersive').addEventListener('click', () => {
+    document.getElementById('viewer').classList.remove('immersive');
+    updateFsIcon();
+    setTimeout(rerenderAllPagesSoon, 50);
   });
+  document.addEventListener('fullscreenchange', updateFsIcon);
+  document.addEventListener('webkitfullscreenchange', updateFsIcon);
   document.getElementById('vThumbsToggle').addEventListener('click', toggleThumbs);
 }
 
@@ -327,9 +329,75 @@ function renderHome() {
           ${state.manifest.chapters.map(chapterCard).join('')}
         </div>
       </section>
+
+      <section class="trivia-section">
+        <div class="trivia-card" id="triviaCard" tabindex="0" role="button" aria-label="Afficher un autre fait mathématique">
+          <div class="trivia-eyebrow">
+            <span class="trivia-spark">✦</span>
+            <span>Le savais-tu ?</span>
+            <span class="trivia-counter" id="triviaCounter"></span>
+          </div>
+          <p class="trivia-text" id="triviaText">${escapeHtml(pickTrivia())}</p>
+          <div class="trivia-foot">
+            <span class="trivia-hint">Touche pour découvrir un autre fait</span>
+            <span class="trivia-symbols" aria-hidden="true">π · e · φ · ∑ · ∫</span>
+          </div>
+        </div>
+      </section>
     </div>
   `;
   bindCardClicks();
+  // Wire trivia card
+  const tc = document.getElementById('triviaCard');
+  if (tc) {
+    tc.addEventListener('click', refreshTrivia);
+    tc.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); refreshTrivia(); }
+    });
+    updateTriviaCounter();
+  }
+}
+
+// =========== Trivia ============
+function pickTrivia() {
+  // Cycle through TRIVIA in a random shuffled order, never repeating
+  // until all have been seen. Persist the queue + seen list in sessionStorage
+  // so reloading within the session keeps progress, but a fresh visit restarts.
+  let queue;
+  try { queue = JSON.parse(sessionStorage.getItem('mp1.triviaQueue') || 'null'); } catch { queue = null; }
+  if (!queue || !queue.length) {
+    queue = shuffleIndices(TRIVIA.length);
+  }
+  const i = queue.shift();
+  sessionStorage.setItem('mp1.triviaQueue', JSON.stringify(queue));
+  sessionStorage.setItem('mp1.triviaSeen', String((parseInt(sessionStorage.getItem('mp1.triviaSeen') || '0', 10)) + 1));
+  return TRIVIA[i];
+}
+function refreshTrivia() {
+  const txt = document.getElementById('triviaText');
+  if (!txt) return;
+  txt.style.opacity = '0';
+  txt.style.transform = 'translateY(6px)';
+  setTimeout(() => {
+    txt.textContent = pickTrivia();
+    txt.style.opacity = '';
+    txt.style.transform = '';
+    updateTriviaCounter();
+  }, 180);
+}
+function updateTriviaCounter() {
+  const c = document.getElementById('triviaCounter');
+  if (!c) return;
+  const seen = parseInt(sessionStorage.getItem('mp1.triviaSeen') || '0', 10);
+  c.textContent = `${seen} / ${TRIVIA.length}`;
+}
+function shuffleIndices(n) {
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function chapterCard(ch) {
@@ -398,15 +466,29 @@ function renderChapter(id, opts = {}) {
   requestAnimationFrame(() => renderItemThumbs(main));
 }
 
-function itemCard(it) {
+function itemCard(it, opts = {}) {
   const cat = it.category;
   const catLabel = CATEGORIES[cat]?.label || cat;
   const isGgb = it.kind === 'ggb';
-  const idx = it._idx !== undefined ? it._idx : (state.manifest.chapters.find(c => c.id === it.chapterId)?.items.indexOf(it) ?? 0);
+  // Look up the canonical index in the manifest by URL (cards on Recents/Favorites
+  // pages have *copies* of the item, so identity-based indexOf fails).
+  const chId  = it.chapterId || state.currentChapter?.id || '';
+  const ch    = state.manifest.chapters.find(c => c.id === chId);
+  let idx     = it._idx;
+  if (idx === undefined && ch) {
+    const baseUrl = (u) => (u || '').split('?')[0];
+    idx = ch.items.findIndex(x => baseUrl(x.url) === baseUrl(it.url));
+    if (idx < 0) idx = 0;
+  }
+  if (idx === undefined) idx = 0;
 
   const href = isGgb
     ? it.url
-    : `#/view/${encodeURIComponent(it.chapterId || state.currentChapter?.id || '')}/${idx}`;
+    : `#/view/${encodeURIComponent(chId)}/${idx}`;
+  const removeBtn = opts.removable
+    ? `<button class="card-remove" data-url="${escapeAttr(it.url)}" aria-label="Retirer des favoris" title="Retirer des favoris">
+         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+       </button>` : '';
   const tag = isGgb ? 'a' : 'a';
   const dl  = isGgb ? `download` : '';
 
@@ -414,6 +496,7 @@ function itemCard(it) {
     <div class="item-preview" data-pdf="${isGgb ? '' : escapeAttr(it.url)}">
       ${isGgb ? `<svg class="placeholder" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>` : `<svg class="placeholder" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>`}
       <span class="badge-cat">${escapeHtml(catLabel)}</span>
+      ${removeBtn}
     </div>
     <div class="item-body">
       <h4>${escapeHtml(it.title || it.label)}</h4>
@@ -501,8 +584,21 @@ function renderFavorites() {
         <h1><span class="badge">★</span> Favoris</h1>
         <p>${favs.length} document${favs.length > 1 ? 's' : ''} marqué${favs.length > 1 ? 's' : ''} comme favori${favs.length > 1 ? 's' : ''}.</p>
       </div>
-      ${favs.length === 0 ? `<div class="empty"><h3>Aucun favori</h3><p>Marquez un document avec l'étoile dans le viewer.</p></div>` : `<div class="items-grid">${favs.map(itemCard).join('')}</div>`}
+      ${favs.length === 0
+        ? `<div class="empty"><h3>Aucun favori</h3><p>Marquez un document avec l'étoile dans le viewer.</p></div>`
+        : `<div class="items-grid">${favs.map(it => itemCard(it, { removable: true })).join('')}</div>`}
     </div>`;
+  // Wire the remove buttons
+  main.querySelectorAll('.card-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const url = btn.dataset.url;
+      let favs2 = getFavorites().filter(i => i.url !== url);
+      localStorage.setItem(STORE.FAVS, JSON.stringify(favs2));
+      toast('Retiré des favoris');
+      renderFavorites();
+    });
+  });
   requestAnimationFrame(() => renderItemThumbs(main));
 }
 
@@ -609,13 +705,19 @@ async function openViewer(chapterId, idx) {
       canvas.className = 'page-canvas';
       canvas.dataset.page = p;
       slot.appendChild(canvas);
-      // Hover side nav arrows (visible on mouse over)
-      const navL = document.createElement('div');
+      // Hover side nav arrows (clickable button — works on PC and touch)
+      const navL = document.createElement('button');
+      navL.type = 'button';
       navL.className = 'slot-nav left';
+      navL.setAttribute('aria-label', 'Diapo précédente');
       navL.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-      const navR = document.createElement('div');
+      navL.addEventListener('click', (e) => { e.stopPropagation(); gotoPage(state.page - 1); });
+      const navR = document.createElement('button');
+      navR.type = 'button';
       navR.className = 'slot-nav right';
+      navR.setAttribute('aria-label', 'Diapo suivante');
       navR.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+      navR.addEventListener('click', (e) => { e.stopPropagation(); gotoPage(state.page + 1); });
       slot.appendChild(navL);
       slot.appendChild(navR);
       wrap.appendChild(slot);
@@ -820,8 +922,29 @@ function setZoom(mode) {
 
 function toggleFullscreen() {
   const v = document.getElementById('viewer');
-  if (!document.fullscreenElement) v.requestFullscreen?.();
-  else document.exitFullscreen?.();
+  const supportsFs = !!(v.requestFullscreen || v.webkitRequestFullscreen);
+  if (supportsFs && !document.fullscreenElement && !document.webkitFullscreenElement) {
+    (v.requestFullscreen || v.webkitRequestFullscreen).call(v).catch(() => {
+      // Native API rejected (typical on iOS): fall back to CSS immersion mode
+      v.classList.toggle('immersive');
+      updateFsIcon();
+    });
+  } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  } else {
+    // No native API at all → CSS-based immersion
+    v.classList.toggle('immersive');
+    updateFsIcon();
+  }
+}
+
+function updateFsIcon() {
+  const v = document.getElementById('viewer');
+  const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement) || v.classList.contains('immersive');
+  const on  = document.querySelector('#vFs .ic-fs-on');
+  const off = document.querySelector('#vFs .ic-fs-off');
+  if (isFs) { on.hidden = true;  off.hidden = false; }
+  else       { on.hidden = false; off.hidden = true;  }
 }
 
 function toggleThumbs() {
@@ -893,18 +1016,24 @@ function toast(msg) {
   toast._t = setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.hidden = true, 300); }, 1600);
 }
 
-// Re-render on viewer resize (debounced), and re-snap to current page
+// Re-render on viewer resize (debounced), and re-snap to current page.
+// Important for phone rotation (portrait <-> landscape): all pages need re-rendering.
 let _resizeTimer = null;
-new ResizeObserver(() => {
+function rerenderAllPagesSoon() {
   if (!state.pdf) return;
   clearTimeout(_resizeTimer);
   _resizeTimer = setTimeout(() => {
     if (state.zoomMode === 'fit') {
+      // mark every page as stale; the IntersectionObserver will re-render
+      // whichever ones come into view (current page is rendered immediately).
       for (const [, c] of state.pageCanvases) c.dataset.rendered = '';
       renderPage(state.page);
     }
     gotoPage(state.page);
   }, 180);
-}).observe(document.getElementById('vScroll'));
+}
+new ResizeObserver(rerenderAllPagesSoon).observe(document.getElementById('vScroll'));
+window.addEventListener('orientationchange', rerenderAllPagesSoon);
+window.addEventListener('resize', rerenderAllPagesSoon);
 
 // Touch swipe (mobile) — handled natively by scroll-snap, no extra JS needed

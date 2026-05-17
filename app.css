@@ -825,19 +825,164 @@ a.right:hover { color: var(--gold); }
 .slot-nav {
   position: absolute;
   top: 0; bottom: 0;
-  width: 18%;
+  width: 14%;
+  min-width: 56px;
   z-index: 2;
   display: grid; place-items: center;
   opacity: 0;
-  transition: opacity var(--fast) var(--ease);
+  transition: opacity var(--fast) var(--ease), background var(--fast) var(--ease);
   pointer-events: auto;
+  cursor: pointer;
+  border: 0;
+  font: inherit;
+  color: inherit;
 }
-.slot-nav.left  { left: 0;  background: linear-gradient(to right, rgba(0,0,0,.18), transparent); }
-.slot-nav.right { right: 0; background: linear-gradient(to left,  rgba(0,0,0,.18), transparent); }
-.slide-slot:hover .slot-nav { opacity: 1; }
-.slot-nav svg { width: 28px; height: 28px; color: #fff; filter: drop-shadow(0 1px 4px rgba(0,0,0,.5)); }
+.slot-nav.left  { left: 0;  background: linear-gradient(to right, rgba(0,0,0,.22), transparent); }
+.slot-nav.right { right: 0; background: linear-gradient(to left,  rgba(0,0,0,.22), transparent); }
+.slot-nav:hover { opacity: 1 !important; }
+.slot-nav.left:hover  { background: linear-gradient(to right, rgba(0,0,0,.42), transparent); }
+.slot-nav.right:hover { background: linear-gradient(to left,  rgba(0,0,0,.42), transparent); }
+.slide-slot:hover .slot-nav { opacity: 0.85; }
+.slot-nav svg { width: 32px; height: 32px; color: #fff; filter: drop-shadow(0 1px 6px rgba(0,0,0,.6)); }
 @media (hover: none) { .slot-nav { display: none; } }
+
+/* Immersive CSS fullscreen (iOS fallback) */
+.exit-immersive {
+  position: fixed; top: 16px; right: 16px;
+  width: 44px; height: 44px;
+  display: none;
+  place-items: center;
+  background: rgba(0,0,0,.6); color: #fff;
+  border-radius: 50%;
+  z-index: 999;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+.viewer.immersive .exit-immersive { display: grid; }
+.viewer.immersive .viewer-bar { display: none; }
+.viewer.immersive .viewer-body { height: 100vh; height: 100dvh; }
+.viewer.immersive .slide-slot { padding: 0; }
+
+/* Remove button on favorite cards */
+.card-remove {
+  position: absolute; top: 8px; right: 8px;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.92); color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  opacity: 0;
+  transition: all var(--fast) var(--ease);
+  z-index: 5;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-1);
+}
+.card-remove:hover { background: var(--gold); color: #fff; border-color: var(--gold); }
+.item-card:hover .card-remove { opacity: 1; }
+@media (hover: none) { .card-remove { opacity: 1; } }
+[data-theme="dark"] .card-remove { background: rgba(30,30,32,.92); color: var(--text); }
 @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+/* ===== Trivia card ===== */
+.trivia-section {
+  margin: 56px 0 24px;
+}
+.trivia-card {
+  position: relative;
+  padding: 32px 32px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: transform var(--base) var(--ease), border-color var(--base) var(--ease), box-shadow var(--base) var(--ease);
+  overflow: hidden;
+}
+.trivia-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold-line);
+  box-shadow: var(--shadow-2);
+}
+.trivia-card:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* Floating mathematical decoration in the trivia card */
+.trivia-card::before {
+  content: 'π · ∑ · ∫ · √ · ∞ · φ · e · θ · Δ · ∂';
+  position: absolute;
+  top: -10px; right: -20px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(34px, 5vw, 56px);
+  color: var(--gold);
+  opacity: .06;
+  pointer-events: none;
+  letter-spacing: .25em;
+  white-space: nowrap;
+}
+.trivia-card::after {
+  content: 'f(x) = a·x² + b·x + c  ·  e^(iπ) + 1 = 0  ·  ∇·E = ρ/ε₀';
+  position: absolute;
+  bottom: -10px; left: -20px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(20px, 3vw, 32px);
+  color: var(--gold);
+  opacity: .05;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.trivia-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .2em;
+  color: var(--gold); font-weight: 600;
+  margin-bottom: 14px;
+  position: relative; z-index: 1;
+}
+.trivia-spark {
+  display: inline-block;
+  color: var(--gold);
+  transform: translateY(-1px);
+  font-size: 14px;
+}
+.trivia-counter {
+  margin-left: auto;
+  color: var(--text-3);
+  font-weight: 500;
+  letter-spacing: .12em;
+  font-variant-numeric: tabular-nums;
+}
+.trivia-text {
+  margin: 0 0 18px;
+  font-family: var(--serif);
+  font-size: clamp(18px, 2.4vw, 24px);
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--text);
+  letter-spacing: -.005em;
+  transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
+  position: relative; z-index: 1;
+  min-height: 2.6em;
+}
+.trivia-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  position: relative; z-index: 1;
+}
+.trivia-hint {
+  font-size: 12px; color: var(--text-3);
+  letter-spacing: .04em;
+}
+.trivia-symbols {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: .25em;
+  opacity: .85;
+}
+@media (max-width: 640px) {
+  .trivia-card { padding: 22px 20px 18px; border-radius: 16px; }
+  .trivia-text { font-size: 17px; }
+}
 
 /* ===== Footer ===== */
 .site-foot {
