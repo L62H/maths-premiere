@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0b0b0d" />
+<title>Mathématiques — Première Spécialité</title>
+<link rel="preconnect" href="https://rsms.me/" />
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+<link rel="stylesheet" href="app.css" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231a1a1c'/%3E%3Ctext x='32' y='44' font-family='Inter,system-ui' font-weight='700' font-size='34' fill='%23c5a572' text-anchor='middle'%3E%CE%A3%3C/text%3E%3C/svg%3E" />
+</head>
+<body data-view="home">
+
+<header class="appbar" role="banner">
+  <button id="menuBtn" class="icon-btn only-mobile" aria-label="Ouvrir le menu" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <a href="#/" class="brand" id="brandLink" aria-label="Accueil">
+    <span class="brand-mark" aria-hidden="true">Σ</span>
+    <span class="brand-text">
+      <strong>Mathématiques</strong>
+      <em>Première · Spécialité</em>
+    </span>
+  </a>
+  <div class="appbar-spacer"></div>
+  <div class="search-wrap" role="search">
+    <svg class="search-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="m20 20-3.6-3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <input id="searchInput" type="search" placeholder="Rechercher un cours, exercice, chapitre…" aria-label="Rechercher" autocomplete="off" />
+    <kbd class="kbd" aria-hidden="true">/</kbd>
+  </div>
+  <button id="searchBtn" class="icon-btn only-mobile" aria-label="Rechercher">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="m20 20-3.6-3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <button id="themeBtn" class="icon-btn" aria-label="Basculer le thème">
+    <svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.5 4.5l2 2M17.5 17.5l2 2M4.5 19.5l2-2M17.5 6.5l2-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>
+  </button>
+</header>
+
+<aside id="sidebar" class="sidebar" aria-label="Chapitres">
+  <div class="sidebar-inner">
+    <div class="sidebar-title">
+      <span>Chapitres</span>
+      <button id="closeSidebar" class="icon-btn only-mobile" aria-label="Fermer le menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <nav id="chapterNav" class="chapter-nav" aria-label="Liste des chapitres"></nav>
+    <div class="sidebar-foot">
+      <a href="#/recent" class="side-link" data-route="recent">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+            Récents
+      </a>
+      <a href="#/favorites" class="side-link" data-route="favorites">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 5 2.3 4.7 5.2.8-3.8 3.7.9 5.2L12 16.9 7.4 19.4l.9-5.2L4.5 10.5l5.2-.8L12 5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/></svg>
+        Favoris
+      </a>
+    </div>
+  </div>
+</aside>
+
+<div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
+
+<main id="main" class="main" tabindex="-1"></main>
+
+<div id="viewer" class="viewer" hidden aria-hidden="true">
+  <div class="viewer-bar">
+    <button id="vBack" class="icon-btn" aria-label="Retour">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </button>
+    <div class="viewer-title" id="vTitle"></div>
+    <div class="viewer-controls">
+      <button id="vPrev" class="icon-btn" aria-label="Page précédente" title="Précédent (←)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </button>
+      <div class="page-counter">
+        <input id="vPage" type="number" min="1" value="1" aria-label="Page actuelle"/>
+        <span class="page-sep">/</span>
+        <span id="vPages">—</span>
+      </div>
+      <button id="vNext" class="icon-btn" aria-label="Page suivante" title="Suivant (→)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </button>
+      <span class="vsep"></span>
+      <button id="vZoomOut" class="icon-btn" aria-label="Dézoomer" title="Dézoomer (-)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+      <span id="vZoomVal" class="zoom-val">100%</span>
+      <button id="vZoomIn" class="icon-btn" aria-label="Zoomer" title="Zoomer (+)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+      <button id="vFit" class="icon-btn" aria-label="Ajuster" title="Ajuster à la page (0)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></svg>
+      </button>
+      <span class="vsep"></span>
+      <button id="vFav" class="icon-btn" aria-label="Favori" title="Ajouter aux favoris">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 5 2.3 4.7 5.2.8-3.8 3.7.9 5.2L12 16.9 7.4 19.4l.9-5.2L4.5 10.5l5.2-.8L12 5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/></svg>
+      </button>
+      <a id="vDownload" class="icon-btn" download aria-label="Télécharger le PDF" title="Télécharger le PDF">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </a>
+      <a id="vDownloadOrig" class="icon-btn" download aria-label="Télécharger l'original" title="Télécharger le .pptx" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </a>
+      <button id="vFs" class="icon-btn" aria-label="Plein écran" title="Plein écran (F)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="viewer-body">
+    <aside id="vThumbs" class="viewer-thumbs" aria-label="Aperçu des pages"></aside>
+    <div id="vScroll" class="viewer-scroll">
+      <div id="vCanvasWrap" class="viewer-canvas-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

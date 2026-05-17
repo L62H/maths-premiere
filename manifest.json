@@ -1,0 +1,269 @@
+{
+    "title":  "Mathématiques — Première Spécialité",
+    "subtitle":  "Cours, exercices \u0026 annales",
+    "generatedAt":  "2026-05-17 14:54:05",
+    "chapters":  [
+                     {
+                         "id":  "1-second-degr",
+                         "number":  1,
+                         "title":  "Second degré",
+                         "slug":  "1 Second degré",
+                         "items":  [
+                                       {
+                                           "label":  "1 second degré",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/1%20Second%20degr%C3%A9/1%20second%20degr%C3%A9.pdf",
+                                           "sizeKB":  2797,
+                                           "originalUrl":  "assets/original/1%20Second%20degr%C3%A9/1%20second%20degr%C3%A9.pptx"
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "2-les-suites",
+                         "number":  2,
+                         "title":  "les suites",
+                         "slug":  "2 les suites",
+                         "items":  [
+                                       {
+                                           "label":  "Diaporama suite",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/2%20les%20suites/Diaporama%20suite.pdf",
+                                           "sizeKB":  1876,
+                                           "originalUrl":  "assets/original/2%20les%20suites/Diaporama%20suite.pptx"
+                                       },
+                                       {
+                                           "label":  "Suites arithmétiques",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/2%20les%20suites/Suites%20arithm%C3%A9tiques.pdf",
+                                           "sizeKB":  1012,
+                                           "originalUrl":  "assets/original/2%20les%20suites/Suites%20arithm%C3%A9tiques.pptx"
+                                       },
+                                       {
+                                           "label":  "Suites géométries",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/2%20les%20suites/Suites%20g%C3%A9om%C3%A9tries.pdf",
+                                           "sizeKB":  1908,
+                                           "originalUrl":  "assets/original/2%20les%20suites/Suites%20g%C3%A9om%C3%A9tries.pptx"
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "3-d-rivation",
+                         "number":  3,
+                         "title":  "Dérivation",
+                         "slug":  "3 Dérivation",
+                         "items":  [
+                                       {
+                                           "label":  "03_Tableau_des_derivees_elementaires_et_regles_de_derivation_TermES",
+                                           "category":  "fiche",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/3%20D%C3%A9rivation/03_Tableau_des_derivees_elementaires_et_regles_de_derivation_TermES.pdf",
+                                           "sizeKB":  54
+                                       },
+                                       {
+                                           "label":  "Dérivation",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/3%20D%C3%A9rivation/D%C3%A9rivation.pdf",
+                                           "sizeKB":  2230,
+                                           "originalUrl":  "assets/original/3%20D%C3%A9rivation/D%C3%A9rivation.pptx"
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "4-g-om-trie-rep-r-e",
+                         "number":  4,
+                         "title":  "géométrie repérée",
+                         "slug":  "4 géométrie repérée",
+                         "items":  [
+                                       {
+                                           "label":  "Exercices de géométrie repérée",
+                                           "category":  "exercices",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/Exercices%20de%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e.pdf",
+                                           "sizeKB":  132
+                                       },
+                                       {
+                                           "label":  "Géométrie repérée",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e.pdf",
+                                           "sizeKB":  1107,
+                                           "originalUrl":  "assets/original/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e.pptx"
+                                       },
+                                       {
+                                           "label":  "Géométrie repérée2",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e2.pdf",
+                                           "sizeKB":  1550,
+                                           "originalUrl":  "assets/original/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/G%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e2.pptx"
+                                       },
+                                       {
+                                           "label":  "Séance du 15 novembre 2024",
+                                           "category":  "seance",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/4%20g%C3%A9om%C3%A9trie%20rep%C3%A9r%C3%A9e/S%C3%A9ance%20du%2015%20novembre%202024.pdf",
+                                           "sizeKB":  966
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "5-probabilit-conditionnelle",
+                         "number":  5,
+                         "title":  "Probabilité conditionnelle",
+                         "slug":  "5 Probabilité conditionnelle",
+                         "items":  [
+                                       {
+                                           "label":  "Probabilité conditionnelle",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/5%20Probabilit%C3%A9%20conditionnelle/Probabilit%C3%A9%20conditionnelle.pdf",
+                                           "sizeKB":  1315,
+                                           "originalUrl":  "assets/original/5%20Probabilit%C3%A9%20conditionnelle/Probabilit%C3%A9%20conditionnelle.pptx"
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "6-d-rivation-applications-l-tude-de-fonctions",
+                         "number":  6,
+                         "title":  "Dérivation applications à l\u0027étude de fonctions",
+                         "slug":  "6 Dérivation  applications à l\u0027étude de fonctions",
+                         "items":  [
+                                       {
+                                           "label":  "Dérivation  applications à l\u0027étude de fonctions",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/6%20D%C3%A9rivation%20%20applications%20%C3%A0%20l\u0027%C3%A9tude%20de%20fonctions/D%C3%A9rivation%20%20applications%20%C3%A0%20l\u0027%C3%A9tude%20de%20fonctions.pdf",
+                                           "sizeKB":  1956,
+                                           "originalUrl":  "assets/original/6%20D%C3%A9rivation%20%20applications%20%C3%A0%20l\u0027%C3%A9tude%20de%20fonctions/D%C3%A9rivation%20%20applications%20%C3%A0%20l\u0027%C3%A9tude%20de%20fonctions.pptx"
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "7-cosinus-et-sinus",
+                         "number":  7,
+                         "title":  "Cosinus et Sinus",
+                         "slug":  "7 Cosinus et Sinus",
+                         "items":  [
+                                       {
+                                           "label":  "3e-ch8-trigonometrie-cours",
+                                           "category":  "cours",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/7%20Cosinus%20et%20Sinus/3e-ch8-trigonometrie-cours.pdf",
+                                           "sizeKB":  91
+                                       },
+                                       {
+                                           "label":  "Cosinus sinus",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/7%20Cosinus%20et%20Sinus/Cosinus%20sinus.pdf",
+                                           "sizeKB":  1950,
+                                           "originalUrl":  "assets/original/7%20Cosinus%20et%20Sinus/Cosinus%20sinus.pptx"
+                                       },
+                                       {
+                                           "label":  "fiche-trigo",
+                                           "category":  "fiche",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/7%20Cosinus%20et%20Sinus/fiche-trigo.pdf",
+                                           "sizeKB":  5953
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "8-fonction-exponentielle",
+                         "number":  8,
+                         "title":  "Fonction exponentielle",
+                         "slug":  "8 Fonction exponentielle",
+                         "items":  [
+                                       {
+                                           "label":  "05_Cours_fonction_exponentielle",
+                                           "category":  "cours",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/8%20Fonction%20exponentielle/05_Cours_fonction_exponentielle.pdf",
+                                           "sizeKB":  775
+                                       },
+                                       {
+                                           "label":  "1S-08-FONCTION_EXPONENTIELLE-cours",
+                                           "category":  "cours",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/8%20Fonction%20exponentielle/1S-08-FONCTION_EXPONENTIELLE-cours.pdf",
+                                           "sizeKB":  430
+                                       },
+                                       {
+                                           "label":  "La fonction exponentielle",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/8%20Fonction%20exponentielle/La%20fonction%20exponentielle.pdf",
+                                           "sizeKB":  2384,
+                                           "originalUrl":  "assets/original/8%20Fonction%20exponentielle/La%20fonction%20exponentielle.pptx"
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "9-variable-al-atoire",
+                         "number":  9,
+                         "title":  "Variable aléatoire",
+                         "slug":  "9 Variable aléatoire",
+                         "items":  [
+                                       {
+                                           "label":  "Variable aléatoire",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/9%20Variable%20al%C3%A9atoire/Variable%20al%C3%A9atoire.pdf",
+                                           "sizeKB":  2027,
+                                           "originalUrl":  "assets/original/9%20Variable%20al%C3%A9atoire/Variable%20al%C3%A9atoire.pptx"
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "10-produit-scalaire",
+                         "number":  10,
+                         "title":  "Produit scalaire",
+                         "slug":  "10 Produit scalaire",
+                         "items":  [
+                                       {
+                                           "label":  "Le produit scalaire",
+                                           "category":  "diaporama",
+                                           "kind":  "pptx",
+                                           "url":  "assets/pdf/10%20Produit%20scalaire/Le%20produit%20scalaire.pdf",
+                                           "sizeKB":  1927,
+                                           "originalUrl":  "assets/original/10%20Produit%20scalaire/Le%20produit%20scalaire.pptx"
+                                       },
+                                       {
+                                           "label":  "Sans titre.ggb",
+                                           "category":  "ressource",
+                                           "kind":  "ggb",
+                                           "url":  "assets/downloads/10%20Produit%20scalaire/Sans%20titre.ggb",
+                                           "sizeKB":  57
+                                       }
+                                   ]
+                     },
+                     {
+                         "id":  "exercices-annales",
+                         "number":  0,
+                         "title":  "Exercices annales",
+                         "slug":  "Exercices annales",
+                         "items":  [
+                                       {
+                                           "label":  "ilovepdf_merged (2)",
+                                           "category":  "annales",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/Exercices%20annales/ilovepdf_merged%20(2).pdf",
+                                           "sizeKB":  50442
+                                       },
+                                       {
+                                           "label":  "ms1spe_2019_v2",
+                                           "category":  "annales",
+                                           "kind":  "pdf",
+                                           "url":  "assets/pdf/Exercices%20annales/ms1spe_2019_v2.pdf",
+                                           "sizeKB":  36575
+                                       }
+                                   ]
+                     }
+                 ]
+}
