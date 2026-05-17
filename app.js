@@ -48,6 +48,13 @@ init();
 
 async function init() {
   applyTheme(localStorage.getItem(STORE.THEME) || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  // Reset "Reprendre" (recent items) at the start of each visit — but keep
+  // them populated within a single visit so the home page can show them after
+  // opening a few documents.
+  if (!sessionStorage.getItem('mp1.session')) {
+    localStorage.removeItem(STORE.RECENT);
+    sessionStorage.setItem('mp1.session', '1');
+  }
   bindUI();
   try {
     const res = await fetch('manifest.json', { cache: 'no-cache' });
@@ -710,9 +717,12 @@ async function renderPage(p) {
     const vp = page.getViewport({ scale: scale * dpr });
     canvas.width = vp.width;
     canvas.height = vp.height;
+    // Set CSS aspect-ratio so any later width reflow keeps the page proportional.
+    // We do NOT set an inline pixel height — that would not auto-update if the
+    // canvas later shrinks due to max-width:100% (which caused vertical stretching).
+    canvas.style.aspectRatio = `${vp1.width} / ${vp1.height}`;
     canvas.style.width = (vp.width / dpr) + 'px';
-    canvas.style.height = (vp.height / dpr) + 'px';
-    canvas.style.aspectRatio = '';
+    canvas.style.height = 'auto';
     delete canvas.dataset.loading;
     await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
   } catch (e) {
