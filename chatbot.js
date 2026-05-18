@@ -886,7 +886,7 @@ export function mountChatbot() {
   });
   // When the keyboard opens on mobile, wait a tick for the viewport to settle
   // and re-pin the panel to the visible area + scroll the latest message in view.
-  input.addEventListener('focus', () => setTimeout(syncPanelHeight, 200));
+  input.addEventListener('focus', () => setTimeout(syncPanelOnKeyboard, 200));
 
   // Restore session messages, otherwise show welcome
   const hist = loadHistory();
@@ -910,38 +910,28 @@ function openChat() {
   requestAnimationFrame(() => panel.classList.add('open'));
   panelOpen = true;
   document.body.classList.add('pp-open');
-  syncPanelHeight();
   // Note: do NOT auto-focus the input on mobile — opening the keyboard
-  // immediately is jarring and re-positions the page weirdly. Users tap
-  // the input themselves when they want to type.
+  // immediately is jarring. Users tap the input themselves when they
+  // want to type.
 }
 function closeChat() {
   const panel = document.getElementById('pelletierPanel');
   panel.classList.remove('open');
   document.body.classList.remove('pp-open');
   panelOpen = false;
-  setTimeout(() => { if (!panelOpen) { panel.hidden = true; panel.style.height = ''; } }, 240);
+  setTimeout(() => { if (!panelOpen) panel.hidden = true; }, 240);
 }
 
-// Track the visible viewport height so the panel always fits the visible
-// area — critical on mobile where the on-screen keyboard would otherwise
-// hide the input and the conversation. Uses VisualViewport API when
-// available, falls back to window.innerHeight.
-function syncPanelHeight() {
-  const panel = document.getElementById('pelletierPanel');
-  if (!panel || panel.hidden) return;
-  const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-  panel.style.height = vh + 'px';
-  // Keep the input visible after a keyboard pops up
+// Keep the latest message visible when the keyboard opens / closes.
+// Layout itself is handled in CSS (100dvh + bottom-of-panel input), and
+// iOS auto-zoom is prevented by forcing input font-size to 16px in CSS.
+function syncPanelOnKeyboard() {
   const msgs = document.getElementById('ppMsgs');
   if (msgs) msgs.scrollTop = msgs.scrollHeight;
 }
 if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', syncPanelHeight);
-  window.visualViewport.addEventListener('scroll', syncPanelHeight);
+  window.visualViewport.addEventListener('resize', syncPanelOnKeyboard);
 }
-window.addEventListener('resize', syncPanelHeight);
-window.addEventListener('orientationchange', () => setTimeout(syncPanelHeight, 200));
 function autoGrow(e) {
   const t = e.currentTarget;
   t.style.height = 'auto';

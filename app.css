@@ -1418,8 +1418,18 @@ a.right:hover { color: var(--gold); }
     width: 100vw;
     border-left: 0;
   }
-  .pp-msg-body { font-size: 14px; }
+  .pp-msg-body { font-size: 15px; }
+  /* iOS Safari auto-zooms in on any input/textarea with font-size < 16px,
+     which warps the whole panel and shifts the page. Force >= 16px on all
+     inputs at the mobile breakpoint. */
+  .pp-input textarea,
+  .pp-key-label input,
+  #searchInput,
+  .page-counter input { font-size: 16px !important; }
 }
+/* Hide the floating M. PELLETIER button while the panel is open, so it
+   doesn't peek through any gap left by the keyboard. */
+body.pp-open .pelletier-fab { display: none; }
 
 /* Toast */
 .toast {
