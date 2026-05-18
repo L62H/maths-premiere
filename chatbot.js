@@ -997,12 +997,9 @@ async function onSubmit(e) {
     if (hasKey()) {
       reply = await askClaude(msg);
     } else {
-      reply = localAnswer(msg) || `Je n'ai pas de réponse toute prête sur ce point. 🙏
+      reply = localAnswer(msg) || `Pour voir la **leçon entière**, tape simplement le **nom d'un chapitre** (ex : « dérivation », « suites », « probabilité »…).
 
-Pour avoir une vraie conversation et corriger tes exercices en détail, configure une clé API Anthropic dans les paramètres (la roue dentée). Sinon, essaie une question sur :
-• **second degré** • **dérivée** • **suites** • **proba conditionnelle**
-• **exponentielle** • **trigonométrie** • **produit scalaire**
-• **variable aléatoire** • **géométrie repérée** • **bac / révisions**`;
+Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas — un prompt prêt à l'emploi est copié automatiquement, tu n'as plus qu'à le coller. ✨`;
     }
     typing.remove();
     appendBubble('assistant', reply);
