@@ -1296,7 +1296,9 @@ a.right:hover { color: var(--gold); }
 
 .pp-msgs {
   display: flex; flex-direction: column; gap: 12px;
-  scroll-behavior: smooth;
+  /* Scroll has to be instant — during the typewriter we update it on every
+     word; a smooth scroll would constantly cancel itself and never reach
+     the bottom. */
 }
 .pp-msg {
   display: flex; gap: 10px;

@@ -992,29 +992,29 @@ function appendBubble(role, content, opts = {}) {
   return div;
 }
 
-// Smooth scroll-to-bottom of the message list
+// Always-instant scroll-to-bottom. Called on every typewriter tick, so it
+// MUST be instant; a smooth scroll would be cancelled by the next call and
+// the view would never reach the bottom (the bug the user saw on PC).
 function scrollMsgsToBottom() {
   const msgs = document.getElementById('ppMsgs');
   if (!msgs) return;
-  // Two passes: jump-then-smooth so even very long messages reach the bottom.
   msgs.scrollTop = msgs.scrollHeight;
-  requestAnimationFrame(() => {
-    msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
-  });
+  // Belt + braces: re-pin on the next frame in case the layout reflows
+  // (avatar inline SVG sizing, font-size change, etc.).
+  requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
 }
 
 // Type the text out word by word, scrolling along.
 function typewriterReveal(el, text) {
   if (!el) return;
-  // Token list: alternating words and whitespace, plus single chars for emojis
   const tokens = text.match(/\s+|[^\s]+/g) || [];
   let acc = '';
   let i = 0;
-  const speed = 22;   // ms between tokens
-  const jitter = 18;  // random extra ms, keeps it natural
+  const speed = 22;
+  const jitter = 18;
   function step() {
-    if (!el.isConnected) return;        // bubble removed mid-way
-    if (i >= tokens.length) return;
+    if (!el.isConnected) return;
+    if (i >= tokens.length) { scrollMsgsToBottom(); return; }
     acc += tokens[i++];
     el.innerHTML = formatMessage(acc);
     scrollMsgsToBottom();
