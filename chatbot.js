@@ -592,28 +592,6 @@ Cas particuliers :
 📘 **Chapitres 6 Étude de fonctions** et **8 Exponentielle**.`
   },
 
-  {
-    keys: ['intégrale', 'integrale', 'primitive', 'aire'],
-    answer: `**Intégrales et primitives** (programme Première — initiation)
-
-🔹 Une **primitive** F de f vérifie F' = f.
-🔹 **Constante d'intégration** : si F est une primitive, toute primitive est F + k.
-
-🔹 **Primitives usuelles**
-| f(x) | F(x) |
-|---|---|
-| xⁿ (n ≠ −1) | xⁿ⁺¹/(n+1) |
-| 1/x | ln |x| |
-| eˣ | eˣ |
-| cos x | sin x |
-| sin x | −cos x |
-| 1/cos²x | tan x |
-
-🔹 **Intégrale** ∫_a^b f(x) dx = F(b) − F(a) (théorème fondamental)
-🔹 **Aire** sous la courbe (pour f ≥ 0) entre a et b : ∫_a^b f(x) dx
-
-📘 Approfondi en **Terminale**.`
-  },
 
   {
     keys: ['bac', 'annales', 'révision', 'controle', 'contrôle', 'sujet', 'préparer', 'preparer', 'astuce'],

@@ -286,73 +286,71 @@ function highlightSidebar(id) {
 // Math symbol "constellation" filling the right side of the hero.
 // Mix of single glyphs, short identities and full classic formulas.
 function heroDeco() {
-  // Single glyphs / short tokens
+  // Notations and formulas restricted to the Première Spécialité Maths
+  // programme — no Terminale-only or higher-ed concepts (no integrals,
+  // complex numbers, set theory, partial derivatives, etc.).
   const glyphs = [
-    '∞', 'π', 'φ', 'e', 'i', 'τ', 'γ',
-    '∑', '∏', '∫', '∮', '∂', '∇', '√', '∛',
-    '+', '−', '×', '÷', '±', '=', '≠', '≈', '≡', '∝',
-    '≤', '≥', '<', '>', '!',
-    '∈', '∉', '⊂', '⊃', '⊆', '⊇', '∩', '∪', '∅',
-    '⊥', '∥', '∠', '°', '→', '↦', '↔', '⇒', '⇔',
-    'α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'λ', 'μ', 'ν', 'ξ', 'ρ', 'σ', 'τ', 'φ', 'χ', 'ψ', 'ω', 'Δ', 'Σ', 'Π', 'Ω',
-    'ℝ', 'ℕ', 'ℤ', 'ℚ', 'ℂ',
-    '∃', '∀', '¬',
+    'π', 'e',                                                 // constantes au programme
+    '∞',                                                       // limites
+    '∑', '√',                                                  // sommes & racines
+    '+', '−', '×', '÷', '±', '=', '≠', '≈', '≤', '≥', '<', '>', '!',
+    '∩', '∪',                                                  // intersection/union (proba)
+    '°',                                                       // degrés
+    '→',                                                       // limite / tend vers
+    'θ',                                                       // angle (trigo)
+    'Δ',                                                       // discriminant
   ];
-  // Classic formulas / identities — kept short and recognisable
+  // Formules — exclusivement du programme de Première Spécialité
   const formulas = [
     'a² + b² = c²',
-    'e^(iπ) + 1 = 0',
     'Δ = b² − 4ac',
     'x = (−b ± √Δ) / (2a)',
     'sin² + cos² = 1',
     'f\'(x) = lim (h→0) (f(x+h)−f(x))/h',
-    '∫ x dx = x²/2',
-    '∫ e^x dx = e^x',
     '(u·v)\' = u\'v + uv\'',
+    '(u/v)\' = (u\'v − uv\')/v²',
     '(eˣ)\' = eˣ',
+    '(ln x)\' = 1/x',
     'ln(ab) = ln(a) + ln(b)',
+    'e^(a+b) = eᵃ·eᵇ',
+    'ln(eˣ) = x',
     'cos(2x) = 1 − 2 sin²(x)',
-    '∑ k = n(n+1)/2',
-    '∑ 1/n² = π²/6',
-    'φ = (1 + √5)/2',
+    'tan θ = sin θ / cos θ',
+    '1 + 2 + … + n = n(n+1)/2',
     'P(B|A) = P(A∩B)/P(A)',
+    'P(A∪B) = P(A) + P(B) − P(A∩B)',
     'u·v = ‖u‖·‖v‖·cos θ',
+    '‖u‖ = √(x² + y²)',
+    '‖u + v‖² = ‖u‖² + 2 u·v + ‖v‖²',
+    'E(X) = Σ xᵢ · P(X = xᵢ)',
     'V(X) = E(X²) − E(X)²',
+    'σ(X) = √V(X)',
     'C(n,k) = n! / (k!(n−k)!)',
+    'P(X=k) = C(n,k)·pᵏ(1−p)ⁿ⁻ᵏ',
+    'E(B(n,p)) = np',
+    'V(B(n,p)) = np(1−p)',
     'uₙ = u₀ + n·r',
     'uₙ = u₀ · qⁿ',
+    'Σ uₙ = (n+1)(u₀ + uₙ)/2',
     'y = ax + b',
-    'a/sin A = b/sin B',
-    'tan θ = sin θ / cos θ',
+    'ax + by + c = 0',
     'lim eˣ/x = +∞',
-    '(a+b)² = a² + 2ab + b²',
-    '∇·E = ρ/ε₀',
-    '∂f/∂x',
-    '∮ B·dl = μ₀ I',
-    'log₂(8) = 3',
-    'a → b',
-    'f : ℝ → ℝ',
-    '∃ x ∈ ℝ',
-    '∀ ε > 0',
-    '|z| = √(a² + b²)',
-    '∑_{k=0}^{n} C(n,k) = 2ⁿ',
-    'n→∞',
+    'lim ln x / x = 0',
+    '(a + b)² = a² + 2ab + b²',
+    '(a − b)² = a² − 2ab + b²',
+    '(a + b)(a − b) = a² − b²',
     'ax² + bx + c',
-    'd/dx (x²) = 2x',
-    'arctan(1) = π/4',
-    'cosh²−sinh² = 1',
-    '⟨u, v⟩',
-    'det(A) = ad − bc',
+    'a(x − α)² + β',
+    'cos(π − x) = −cos x',
+    'sin(π − x) = sin x',
+    'cos(π/2 − x) = sin x',
   ];
 
-  // Build a stable but well-distributed placement.
-  // Use a small seeded PRNG so the layout looks "random" but stays consistent
-  // between renders within a session.
   const rand = mulberry32(0xC0FFEE);
   const pieces = [];
 
   // 1) Big single-glyph anchors (very faint)
-  const bigGlyphs = ['∫', '∑', 'π', '∞', '∂', '√', 'Δ', 'Σ', '∏'];
+  const bigGlyphs = ['∑', 'π', '∞', '√', 'Δ', 'e', 'θ'];
   for (let i = 0; i < bigGlyphs.length; i++) {
     pieces.push({
       text: bigGlyphs[i],
