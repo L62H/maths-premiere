@@ -6,6 +6,7 @@
 
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
 import { TRIVIA } from './trivia.js';
+import { mountChatbot } from './chatbot.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
 
@@ -89,6 +90,9 @@ async function init() {
   renderSidebar();
   window.addEventListener('hashchange', route);
   route();
+
+  // Mount the M. PELLETIER chatbot
+  mountChatbot();
 }
 
 function prettifyTitle(s) {
@@ -492,10 +496,19 @@ function itemCard(it, opts = {}) {
   const tag = isGgb ? 'a' : 'a';
   const dl  = isGgb ? `download` : '';
 
+  const favOn = isFav(it.url);
+  const starBtn = isGgb ? '' : `
+    <button class="card-star ${favOn ? 'on' : ''}" data-url="${escapeAttr(it.url)}" data-fav-payload='${escapeAttr(JSON.stringify({ url: it.url, label: it.label, title: it.title, category: it.category, kind: it.kind, chapterId: chId, chapterTitle: it.chapterTitle || ch?.title, chapterNumber: it.chapterNumber || ch?.number, sizeKB: it.sizeKB, originalUrl: it.originalUrl }))}' aria-label="${favOn ? 'Retirer des favoris' : 'Ajouter aux favoris'}" title="${favOn ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m12 4 2.5 5.1 5.6.8-4.1 4 .9 5.6L12 16.9 6.9 19.5l.9-5.6-4-4 5.6-.8L12 4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="${favOn ? 'currentColor' : 'none'}"/>
+      </svg>
+    </button>`;
+
   return `<${tag} class="item-card" href="${href}" ${dl} data-cat="${escapeAttr(cat)}" data-url="${escapeAttr(it.url)}" data-pages-target>
     <div class="item-preview" data-pdf="${isGgb ? '' : escapeAttr(it.url)}">
       ${isGgb ? `<svg class="placeholder" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>` : `<svg class="placeholder" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>`}
       <span class="badge-cat">${escapeHtml(catLabel)}</span>
+      ${starBtn}
       ${removeBtn}
     </div>
     <div class="item-body">
@@ -553,8 +566,22 @@ function renderItemThumbs(root) {
 }
 
 function bindCardClicks() {
-  document.querySelectorAll('.item-card, .chap-card').forEach(el => {
-    // already <a>, browser handles navigation
+  // Wire the star buttons on item cards (anywhere they appear)
+  document.querySelectorAll('.card-star').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      let payload;
+      try { payload = JSON.parse(btn.dataset.favPayload || '{}'); }
+      catch { payload = { url: btn.dataset.url }; }
+      const added = toggleFav(payload);
+      btn.classList.toggle('on', added);
+      btn.querySelector('path').setAttribute('fill', added ? 'currentColor' : 'none');
+      btn.setAttribute('aria-label', added ? 'Retirer des favoris' : 'Ajouter aux favoris');
+      btn.setAttribute('title',      added ? 'Retirer des favoris' : 'Ajouter aux favoris');
+      toast(added ? 'Ajouté aux favoris' : 'Retiré des favoris');
+      // If we're currently on the favorites page, refresh
+      if ((state.currentRoute || '/') === '/favorites') renderFavorites();
+    });
   });
 }
 
