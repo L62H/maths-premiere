@@ -695,9 +695,10 @@ PROGRAMME DE PREMIÈRE SPÉCIALITÉ MATHS (à connaître par cœur)
 
 3) DÉRIVATION
 - (xⁿ)' = n·xⁿ⁻¹ · (√x)' = 1/(2√x) · (1/x)' = −1/x²
-- (eˣ)' = eˣ · (ln x)' = 1/x · (sin x)' = cos x · (cos x)' = −sin x
-- (uv)' = u'v + uv' · (u/v)' = (u'v − uv')/v² · (u∘v)' = u'(v)·v'
+- (eˣ)' = eˣ · (sin x)' = cos x · (cos x)' = −sin x
+- (uv)' = u'v + uv' · (u/v)' = (u'v − uv')/v²
 - Tangente en a : y = f'(a)(x − a) + f(a)
+- ⚠️ La fonction ln, sa dérivée, ses limites : NE PAS utiliser, c'est au programme de Terminale.
 
 4) GÉOMÉTRIE REPÉRÉE
 - AB(x_B − x_A ; y_B − y_A) · ‖AB‖ = √(Δx² + Δy²)
@@ -733,7 +734,7 @@ PROGRAMME DE PREMIÈRE SPÉCIALITÉ MATHS (à connaître par cœur)
 - eˣ > 0 pour tout x
 - (eˣ)' = eˣ · (e^u)' = u'·e^u
 - lim eˣ = +∞ en +∞ · lim eˣ = 0⁺ en −∞
-- Croissances comparées : eˣ ≫ xⁿ ≫ ln x
+- Croissance comparée (au programme de Première) : lim (x→+∞) eˣ/x = +∞
 
 9) VARIABLE ALÉATOIRE
 - E(X) = Σ xᵢ·P(X = xᵢ)
@@ -751,11 +752,19 @@ PROGRAMME DE PREMIÈRE SPÉCIALITÉ MATHS (à connaître par cœur)
 - Al-Kashi : a² = b² + c² − 2bc cos Â
 
 PIÈGES TYPIQUES BAC
-- Oublier le domaine de définition (ln, racine, dénominateur)
+- Oublier le domaine de définition (racine, dénominateur)
 - Confondre P(A∩B) et P(B|A)
 - Mal poser la récurrence (initialisation + hérédité explicitées)
-- Pour les limites, mélanger vecteur directeur et normal
-- Oublier de vérifier les hypothèses d'un théorème (continuité, monotonie)
+- Confondre vecteur directeur et normal d'une droite
+- Oublier de vérifier les hypothèses d'un théorème (signe constant, monotonie)
+
+⚠️ HORS PROGRAMME (Terminale ou plus) — NE PAS UTILISER :
+- Logarithme népérien (ln), sa dérivée, ses limites
+- Intégrales, primitives
+- Nombres complexes (i, e^(iπ), module |z|, etc.)
+- Continuité formelle, théorème des valeurs intermédiaires formel
+- Théorie des ensembles avancée (∀, ∃, ⊂, ∈)
+- Dérivée d'une composée générale (u∘v)' — n'utiliser que les cas du programme : (u^n)', (e^u)', (cos(ax+b))', etc.
 
 DEMANDE DE L'ÉLÈVE
 [Ici l'élève va te poser sa question / coller son exercice]`;
