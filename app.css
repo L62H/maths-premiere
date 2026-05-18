@@ -328,12 +328,11 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
   -webkit-mask-image: linear-gradient(to left, black 60%, transparent 100%);
           mask-image: linear-gradient(to left, black 60%, transparent 100%);
 }
+/* On mobile, the constellation gets in the way of the title and stats.
+   Hide it entirely below 720px — the chapter pages still have their own
+   chapter-specific decoration, which is plenty. */
 @media (max-width: 720px) {
-  .hero-deco {
-    width: 80%;
-    -webkit-mask-image: linear-gradient(to left, black 40%, transparent 100%);
-            mask-image: linear-gradient(to left, black 40%, transparent 100%);
-  }
+  .hero-deco { display: none; }
 }
 .hero-deco .m {
   position: absolute;

@@ -884,6 +884,9 @@ export function mountChatbot() {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); panel.querySelector('#ppForm').requestSubmit(); }
   });
+  // When the keyboard opens on mobile, wait a tick for the viewport to settle
+  // and re-pin the panel to the visible area + scroll the latest message in view.
+  input.addEventListener('focus', () => setTimeout(syncPanelHeight, 200));
 
   // Restore session messages, otherwise show welcome
   const hist = loadHistory();
@@ -907,15 +910,38 @@ function openChat() {
   requestAnimationFrame(() => panel.classList.add('open'));
   panelOpen = true;
   document.body.classList.add('pp-open');
-  setTimeout(() => document.getElementById('ppInput')?.focus(), 250);
+  syncPanelHeight();
+  // Note: do NOT auto-focus the input on mobile — opening the keyboard
+  // immediately is jarring and re-positions the page weirdly. Users tap
+  // the input themselves when they want to type.
 }
 function closeChat() {
   const panel = document.getElementById('pelletierPanel');
   panel.classList.remove('open');
   document.body.classList.remove('pp-open');
   panelOpen = false;
-  setTimeout(() => { if (!panelOpen) panel.hidden = true; }, 240);
+  setTimeout(() => { if (!panelOpen) { panel.hidden = true; panel.style.height = ''; } }, 240);
 }
+
+// Track the visible viewport height so the panel always fits the visible
+// area — critical on mobile where the on-screen keyboard would otherwise
+// hide the input and the conversation. Uses VisualViewport API when
+// available, falls back to window.innerHeight.
+function syncPanelHeight() {
+  const panel = document.getElementById('pelletierPanel');
+  if (!panel || panel.hidden) return;
+  const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+  panel.style.height = vh + 'px';
+  // Keep the input visible after a keyboard pops up
+  const msgs = document.getElementById('ppMsgs');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', syncPanelHeight);
+  window.visualViewport.addEventListener('scroll', syncPanelHeight);
+}
+window.addEventListener('resize', syncPanelHeight);
+window.addEventListener('orientationchange', () => setTimeout(syncPanelHeight, 200));
 function autoGrow(e) {
   const t = e.currentTarget;
   t.style.height = 'auto';
