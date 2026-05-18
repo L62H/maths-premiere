@@ -909,9 +909,19 @@ a.right:hover { color: var(--gold); }
   padding: 24px;
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  cursor: pointer;       /* hint that clicking advances */
+  cursor: pointer;
   position: relative;
-  touch-action: pan-x pinch-zoom;  /* allow horizontal swipe gesture */
+  touch-action: pan-x pinch-zoom;
+}
+/* When the user has zoomed in, let the slot scroll so the oversized canvas
+   can be panned around (the swipe between slides still works at the outer
+   container level). */
+.slide-slot.zoomed {
+  overflow: auto;
+  place-items: start center;
+  padding: 12px;
+  cursor: default;
+  touch-action: auto;
 }
 .page-canvas {
   background: #fff;
@@ -924,6 +934,10 @@ a.right:hover { color: var(--gold); }
   height: auto;
   user-select: none;
   -webkit-user-drag: none;
+}
+.slide-slot.zoomed .page-canvas {
+  max-width: none;
+  max-height: none;
 }
 .slide-slot[data-loading="true"]::before {
   content: '';
@@ -1473,6 +1487,7 @@ a.right:hover { color: var(--gold); }
      one line and the last icon stops getting clipped. */
   .viewer-controls #vThumbsToggle { display: none; }   /* thumbnails are hidden on mobile anyway */
   .viewer-controls #vDownloadOrig { display: none; }    /* keep the PDF download only */
+  .viewer-title { display: none; }                       /* truncated to "D." — useless */
   .viewer-bar { gap: 1px; padding: 0 4px; }
   .icon-btn { width: 32px; height: 32px; }
   .page-counter { padding: 0 2px; }

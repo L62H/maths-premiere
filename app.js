@@ -1105,7 +1105,6 @@ async function renderPage(p) {
   try {
     const page = await state.pdf.getPage(p);
     const slot = canvas.parentElement;
-    // available area inside the slot (slot has padding via CSS)
     const slotRect = slot.getBoundingClientRect();
     const cs = getComputedStyle(slot);
     const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
@@ -1113,23 +1112,33 @@ async function renderPage(p) {
     const availW = Math.max(100, slotRect.width  - padX);
     const availH = Math.max(100, slotRect.height - padY);
     const vp1 = page.getViewport({ scale: 1 });
+    const isZoomed = state.zoomMode !== 'fit';
     let scale;
-    if (state.zoomMode === 'fit') {
-      // fit inside the slot — both width AND height
+    if (!isZoomed) {
       scale = Math.min(availW / vp1.width, availH / vp1.height);
     } else {
-      scale = state.zoomScale;
+      // Zoom scale is the multiplier *relative to fit*, so zoom 1× = fit,
+      // zoom 1.5× = 50% bigger than fit, etc.
+      const fitScale = Math.min(availW / vp1.width, availH / vp1.height);
+      scale = fitScale * state.zoomScale;
     }
     if (!isFinite(scale) || scale <= 0) scale = 1;
     const dpr = window.devicePixelRatio || 1;
     const vp = page.getViewport({ scale: scale * dpr });
     canvas.width = vp.width;
     canvas.height = vp.height;
-    canvas.style.aspectRatio = `${vp1.width} / ${vp1.height}`;
-    // Don't set inline width/height: let max-width/max-height in CSS keep canvas
-    // inside the slot while preserving aspect via aspect-ratio.
-    canvas.style.width = '';
-    canvas.style.height = '';
+    if (isZoomed) {
+      // Explicit pixel size + overflow allowed
+      canvas.style.aspectRatio = '';
+      canvas.style.width  = (vp.width  / dpr) + 'px';
+      canvas.style.height = (vp.height / dpr) + 'px';
+    } else {
+      // CSS handles size via aspect-ratio + max-width/height inside slot
+      canvas.style.aspectRatio = `${vp1.width} / ${vp1.height}`;
+      canvas.style.width  = '';
+      canvas.style.height = '';
+    }
+    slot.classList.toggle('zoomed', isZoomed);
     delete slot.dataset.loading;
     await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
   } catch (e) {
@@ -1168,29 +1177,29 @@ function updateActiveThumb() {
 }
 
 function zoomBy(delta) {
-  if (state.zoomMode === 'fit') {
-    // first switch from fit to actual scale of current page
-    const c = state.pageCanvases.get(state.page);
-    if (c) {
-      const cssW = parseFloat(c.style.width);
-      // approximate scale
-      state.zoomScale = (cssW / 900) || 1;
-    } else state.zoomScale = 1;
-  }
+  // First click out of fit-mode initialises scale at 1× (= fit) so the next
+  // step is clearly +/− than what the user was looking at.
+  if (state.zoomMode === 'fit') state.zoomScale = 1;
   state.zoomMode = 'scale';
-  state.zoomScale = Math.max(0.4, Math.min(4, state.zoomScale + delta));
+  state.zoomScale = Math.max(0.5, Math.min(4, state.zoomScale + delta));
+  // Snap back to fit when within 5% of 1× so users can return there easily
+  if (Math.abs(state.zoomScale - 1) < 0.05) {
+    state.zoomMode = 'fit';
+  }
   document.getElementById('vZoomVal').textContent = Math.round(state.zoomScale * 100) + '%';
   localStorage.setItem(STORE.ZOOM, state.zoomScale);
-  // re-render all rendered pages
   for (const [p, c] of state.pageCanvases) { c.dataset.rendered = ''; renderPage(p); }
 }
 
 function setZoom(mode) {
   state.zoomMode = mode;
   if (mode === 'fit') {
+    state.zoomScale = 1;
     document.getElementById('vZoomVal').textContent = 'Ajusté';
     localStorage.setItem(STORE.ZOOM, 'fit');
   }
+  // Drop the .zoomed class everywhere — slots fit on next render
+  document.querySelectorAll('.slide-slot').forEach(s => s.classList.remove('zoomed'));
   for (const [p, c] of state.pageCanvases) { c.dataset.rendered = ''; renderPage(p); }
 }
 
