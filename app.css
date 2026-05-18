@@ -762,6 +762,27 @@ a.right:hover { color: var(--gold); }
 #vFav.active .star-fill    { display: block; }
 #vFav.active .star-outline { display: none; }
 
+/* Delete-slide button: red tint when current slide is hidden */
+#vDelete.active { color: #d04848; background: rgba(208, 72, 72, 0.10); }
+
+/* Hidden slides — fully removed from layout in the scrolling list and thumb panel */
+.slide-slot.is-hidden { display: none !important; }
+.thumb.is-hidden { display: none !important; }
+
+/* Toast undo link */
+.toast-undo {
+  margin-left: 12px;
+  padding: 2px 10px;
+  background: rgba(255,255,255,.18);
+  color: inherit;
+  border: 0;
+  border-radius: 999px;
+  font: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .03em;
+}
+.toast-undo:hover { background: rgba(255,255,255,.28); }
+
 /* Card star (top-right of each item card) */
 .card-star {
   position: absolute; top: 8px; right: 8px;

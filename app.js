@@ -136,26 +136,37 @@ function bindUI() {
     if (e.target.matches('input, textarea')) return;
     if (e.key === '/' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); search.focus(); }
     if (state.currentItem) {
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); gotoPage(state.page + 1); }
-      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); gotoPage(state.page - 1); }
-      else if (e.key === 'Home') { e.preventDefault(); gotoPage(1); }
-      else if (e.key === 'End')  { e.preventDefault(); gotoPage(state.pageCount); }
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); gotoPage(nextVisiblePage(state.page, +1)); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); gotoPage(nextVisiblePage(state.page, -1)); }
+      else if (e.key === 'Home') { e.preventDefault(); gotoPage(nextVisiblePage(0, +1)); }
+      else if (e.key === 'End')  { e.preventDefault(); gotoPage(nextVisiblePage(state.pageCount + 1, -1)); }
       else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomBy(0.15); }
       else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomBy(-0.15); }
       else if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
       else if (e.key.toLowerCase() === 't') { e.preventDefault(); toggleThumbs(); }
+      else if (e.key === 'Delete') { e.preventDefault(); deleteCurrentSlide(); }
       else if (e.key === 'Escape') { e.preventDefault(); closeViewer(); }
     }
   });
 
   // Viewer controls
   document.getElementById('vBack').addEventListener('click', closeViewer);
-  document.getElementById('vPrev').addEventListener('click', () => gotoPage(state.page - 1));
-  document.getElementById('vNext').addEventListener('click', () => gotoPage(state.page + 1));
-  document.getElementById('vPage').addEventListener('change', e => gotoPage(parseInt(e.target.value, 10) || 1));
+  document.getElementById('vPrev').addEventListener('click', () => gotoPage(nextVisiblePage(state.page, -1)));
+  document.getElementById('vNext').addEventListener('click', () => gotoPage(nextVisiblePage(state.page, +1)));
+  document.getElementById('vPage').addEventListener('change', e => {
+    // The input is a visible-index — translate it back to the original page number
+    const target = parseInt(e.target.value, 10) || 1;
+    const set = state.hiddenPages || new Set();
+    let count = 0;
+    for (let p = 1; p <= state.pageCount; p++) {
+      if (!set.has(p)) { count++; if (count === target) { gotoPage(p); return; } }
+    }
+    gotoPage(target);
+  });
   document.getElementById('vZoomIn').addEventListener('click', () => zoomBy(0.15));
   document.getElementById('vZoomOut').addEventListener('click', () => zoomBy(-0.15));
   document.getElementById('vFav').addEventListener('click', toggleFavCurrent);
+  document.getElementById('vDelete').addEventListener('click', deleteCurrentSlide);
   document.getElementById('vFs').addEventListener('click', toggleFullscreen);
   document.getElementById('vExitImmersive').addEventListener('click', () => {
     document.getElementById('viewer').classList.remove('immersive');
@@ -816,6 +827,7 @@ async function openViewer(chapterId, idx) {
   state.thumbsRendered.clear();
   state.zoomMode = localStorage.getItem(STORE.ZOOM) || 'fit';
   state.zoomScale = 1;
+  state.hiddenPages = loadHidden(item);
 
   // Save to recents
   pushRecent(item);
@@ -868,13 +880,13 @@ async function openViewer(chapterId, idx) {
       navL.className = 'slot-nav left';
       navL.setAttribute('aria-label', 'Diapo précédente');
       navL.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-      navL.addEventListener('click', (e) => { e.stopPropagation(); gotoPage(state.page - 1); });
+      navL.addEventListener('click', (e) => { e.stopPropagation(); gotoPage(nextVisiblePage(state.page, -1)); });
       const navR = document.createElement('button');
       navR.type = 'button';
       navR.className = 'slot-nav right';
       navR.setAttribute('aria-label', 'Diapo suivante');
       navR.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-      navR.addEventListener('click', (e) => { e.stopPropagation(); gotoPage(state.page + 1); });
+      navR.addEventListener('click', (e) => { e.stopPropagation(); gotoPage(nextVisiblePage(state.page, +1)); });
       slot.appendChild(navL);
       slot.appendChild(navR);
       wrap.appendChild(slot);
@@ -884,9 +896,15 @@ async function openViewer(chapterId, idx) {
     renderThumbsAll();
     // Render visible pages
     observePages();
-    // Render first page immediately
-    renderPage(1);
+    // Apply per-user hidden pages
+    applyHidden();
+    // Start at first VISIBLE page
+    const first = nextVisiblePage(0, +1);
+    state.page = first;
+    renderPage(first);
+    if (first !== 1) gotoPage(first);
     updatePageInput();
+    syncDeleteIcon();
   } catch (e) {
     document.getElementById('vCanvasWrap').innerHTML =
       `<div class="empty"><h3>Erreur de chargement</h3><p>${escapeHtml(e.message)}</p></div>`;
@@ -1020,17 +1038,21 @@ async function renderPage(p) {
 }
 
 function onSlotClick(e) {
-  // Ignore clicks on the explicit hover arrows (their own handler runs)
   if (e.target.closest('.slot-nav')) return;
   const slot = e.currentTarget;
   const r = slot.getBoundingClientRect();
   const xRel = (e.clientX - r.left) / r.width;
-  if (xRel > 0.5) gotoPage(state.page + 1);
-  else            gotoPage(state.page - 1);
+  if (xRel > 0.5) gotoPage(nextVisiblePage(state.page, +1));
+  else            gotoPage(nextVisiblePage(state.page, -1));
 }
 
 function gotoPage(p) {
   p = Math.max(1, Math.min(state.pageCount, p));
+  // Skip hidden pages by walking in the direction of motion
+  if ((state.hiddenPages || new Set()).has(p)) {
+    const dir = p > (state.page || 0) ? +1 : -1;
+    p = nextVisiblePage(p - dir, dir);
+  }
   state.page = p;
   state.suppressActiveUpdate = Date.now() + 900;
   const slot = document.querySelector(`.slide-slot[data-page="${p}"]`);
@@ -1039,10 +1061,15 @@ function gotoPage(p) {
   }
   updatePageInput();
   updateActiveThumb();
+  syncDeleteIcon();
 }
 
 function updatePageInput() {
-  document.getElementById('vPage').value = state.page;
+  const set = state.hiddenPages || new Set();
+  // Show the visible-index of the current page (e.g. "3" when 2 earlier pages are hidden)
+  let idx = 0;
+  for (let p = 1; p <= state.page; p++) if (!set.has(p)) idx++;
+  document.getElementById('vPage').value = idx || state.page;
 }
 function updateActiveThumb() {
   document.querySelectorAll('.thumb').forEach(t => t.classList.toggle('active', parseInt(t.dataset.page, 10) === state.page));
@@ -1075,6 +1102,94 @@ function setZoom(mode) {
     localStorage.setItem(STORE.ZOOM, 'fit');
   }
   for (const [p, c] of state.pageCanvases) { c.dataset.rendered = ''; renderPage(p); }
+}
+
+// ==== User-driven slide deletion ====
+// Each PDF has a Set of hidden page numbers in localStorage, keyed by the
+// PDF's base URL (without ?v=…). The deletion is purely client-side; the
+// underlying PDF is unchanged.
+function hiddenKey(item) { return 'mp1.hidden:' + (item.url || '').split('?')[0]; }
+function loadHidden(item) {
+  try {
+    const arr = JSON.parse(localStorage.getItem(hiddenKey(item)) || '[]');
+    return new Set(arr);
+  } catch { return new Set(); }
+}
+function saveHidden(item, set) {
+  localStorage.setItem(hiddenKey(item), JSON.stringify([...set].sort((a,b)=>a-b)));
+}
+function applyHidden() {
+  if (!state.currentItem) return;
+  const set = state.hiddenPages || new Set();
+  const visibleCount = state.pageCount - set.size;
+  document.querySelectorAll('.slide-slot').forEach(slot => {
+    const p = parseInt(slot.dataset.page, 10);
+    slot.classList.toggle('is-hidden', set.has(p));
+  });
+  document.querySelectorAll('.thumb').forEach(t => {
+    const p = parseInt(t.dataset.page, 10);
+    t.classList.toggle('is-hidden', set.has(p));
+  });
+  // Counter shows "k / visibleCount" with k counted among visible pages only
+  document.getElementById('vPages').textContent = visibleCount;
+  syncDeleteIcon();
+}
+function syncDeleteIcon() {
+  const btn = document.getElementById('vDelete');
+  if (!btn || !state.currentItem) return;
+  const hidden = (state.hiddenPages || new Set()).has(state.page);
+  btn.classList.toggle('active', hidden);
+  btn.setAttribute('aria-label', hidden ? 'Restaurer cette diapo' : 'Supprimer cette diapo');
+  btn.setAttribute('title',      hidden ? 'Restaurer cette diapo (Suppr)' : 'Supprimer cette diapo (Suppr)');
+}
+function nextVisiblePage(from, dir) {
+  const set = state.hiddenPages || new Set();
+  let p = from + dir;
+  while (p >= 1 && p <= state.pageCount && set.has(p)) p += dir;
+  if (p < 1 || p > state.pageCount) {
+    // Fall back the other way
+    p = from - dir;
+    while (p >= 1 && p <= state.pageCount && set.has(p)) p -= dir;
+  }
+  return p;
+}
+function deleteCurrentSlide() {
+  if (!state.currentItem) return;
+  if (!state.hiddenPages) state.hiddenPages = loadHidden(state.currentItem);
+  const p = state.page;
+  if (state.hiddenPages.has(p)) {
+    // Already hidden — restore it
+    state.hiddenPages.delete(p);
+    saveHidden(state.currentItem, state.hiddenPages);
+    applyHidden();
+    toast('Diapo restaurée');
+    return;
+  }
+  state.hiddenPages.add(p);
+  saveHidden(state.currentItem, state.hiddenPages);
+  applyHidden();
+  // Move to next visible page
+  const nextP = nextVisiblePage(p, +1);
+  if (nextP !== p) gotoPage(nextP);
+  // Toast with Annuler
+  toastWithUndo(`Diapo ${p} masquée`, () => {
+    state.hiddenPages.delete(p);
+    saveHidden(state.currentItem, state.hiddenPages);
+    applyHidden();
+    gotoPage(p);
+  });
+}
+function toastWithUndo(msg, onUndo) {
+  const t = document.getElementById('toast');
+  t.innerHTML = `${escapeHtml(msg)} <button class="toast-undo" type="button">Annuler</button>`;
+  t.hidden = false; t.classList.add('show');
+  clearTimeout(toastWithUndo._t);
+  const btn = t.querySelector('.toast-undo');
+  btn?.addEventListener('click', () => {
+    onUndo();
+    t.classList.remove('show'); setTimeout(() => t.hidden = true, 300);
+  });
+  toastWithUndo._t = setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.hidden = true, 300); }, 4000);
 }
 
 function toggleFullscreen() {
