@@ -361,7 +361,8 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
 [data-theme="dark"] .hero-deco .m.t3 { opacity: .55; }
 [data-theme="dark"] .hero-deco .m.t4 { opacity: .35; }
 [data-theme="dark"] .hero-deco .m { text-shadow: 0 0 12px rgba(230,191,122,.15); }
-.hero > * { position: relative; z-index: 1; }
+.hero > *:not(.hero-deco) { position: relative; z-index: 1; }
+.hero > .hero-deco { z-index: 0; }
 .hero .eyebrow {
   display: inline-flex; align-items: center; gap: 12px;
   font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
