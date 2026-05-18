@@ -1296,10 +1296,16 @@ a.right:hover { color: var(--gold); }
 
 .pp-msgs {
   display: flex; flex-direction: column; gap: 12px;
+  scroll-behavior: smooth;
 }
 .pp-msg {
   display: flex; gap: 10px;
   max-width: 100%;
+  animation: pp-msg-in 0.32s var(--ease) both;
+}
+@keyframes pp-msg-in {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: none; }
 }
 .pp-msg-user { justify-content: flex-end; }
 .pp-msg-avatar {

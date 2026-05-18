@@ -954,14 +954,18 @@ async function onSubmit(e) {
   input.value = '';
   input.style.height = '';
   appendBubble('user', msg);
+  scrollMsgsToBottom();
 
-  // Typing indicator
+  // Typing indicator — show it for a short, deliberate moment even when the
+  // local answer is instant, so the conversation feels alive.
   const typing = appendBubble('assistant', '<span class="pp-typing"><i></i><i></i><i></i></span>', { html: true, transient: true });
 
   try {
     const reply = localAnswer(msg) || `Pour voir la **leçon entière**, tape simplement le **nom d'un chapitre** (ex : « dérivation », « suites », « probabilité »…).
 
 Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas — un prompt prêt à l'emploi est copié automatiquement, tu n'as plus qu'à le coller. ✨`;
+    // Minimum visible "thinking" pause so the typing indicator actually shows
+    await new Promise(r => setTimeout(r, 650 + Math.random() * 350));
     typing.remove();
     appendBubble('assistant', reply);
   } catch (err) {
@@ -974,17 +978,49 @@ function appendBubble(role, content, opts = {}) {
   const msgs = document.getElementById('ppMsgs');
   const div = document.createElement('div');
   div.className = 'pp-msg pp-msg-' + role;
+  // Animate-typewriter for live bot replies; keep welcome/history/HTML instant.
+  const shouldType = role === 'assistant' && !opts.html && !opts.transient && !opts.skipHistory;
   if (role === 'assistant') {
-    div.innerHTML = `<div class="pp-msg-avatar">${PELLETIER_AVATAR_SMALL}</div><div class="pp-msg-body">${formatMessage(content, opts.html)}</div>`;
+    const bodyHtml = shouldType ? '' : formatMessage(content, opts.html);
+    div.innerHTML = `<div class="pp-msg-avatar">${PELLETIER_AVATAR_SMALL}</div><div class="pp-msg-body">${bodyHtml}</div>`;
   } else {
     div.innerHTML = `<div class="pp-msg-body">${formatMessage(content, opts.html)}</div>`;
   }
   msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  if (!opts.skipHistory && !opts.transient && role !== 'assistant') {
-    // user messages tracked through askClaude, but local fallback skips saving — we don't need them then
-  }
+  scrollMsgsToBottom();
+  if (shouldType) typewriterReveal(div.querySelector('.pp-msg-body'), content);
   return div;
+}
+
+// Smooth scroll-to-bottom of the message list
+function scrollMsgsToBottom() {
+  const msgs = document.getElementById('ppMsgs');
+  if (!msgs) return;
+  // Two passes: jump-then-smooth so even very long messages reach the bottom.
+  msgs.scrollTop = msgs.scrollHeight;
+  requestAnimationFrame(() => {
+    msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
+  });
+}
+
+// Type the text out word by word, scrolling along.
+function typewriterReveal(el, text) {
+  if (!el) return;
+  // Token list: alternating words and whitespace, plus single chars for emojis
+  const tokens = text.match(/\s+|[^\s]+/g) || [];
+  let acc = '';
+  let i = 0;
+  const speed = 22;   // ms between tokens
+  const jitter = 18;  // random extra ms, keeps it natural
+  function step() {
+    if (!el.isConnected) return;        // bubble removed mid-way
+    if (i >= tokens.length) return;
+    acc += tokens[i++];
+    el.innerHTML = formatMessage(acc);
+    scrollMsgsToBottom();
+    setTimeout(step, speed + Math.random() * jitter);
+  }
+  step();
 }
 
 function formatMessage(text, isHtml) {
