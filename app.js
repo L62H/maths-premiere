@@ -272,6 +272,133 @@ function highlightSidebar(id) {
   });
 }
 
+// ----------------------------- Hero decoration -------------------------
+// Math symbol "constellation" filling the right side of the hero.
+// Mix of single glyphs, short identities and full classic formulas.
+function heroDeco() {
+  // Single glyphs / short tokens
+  const glyphs = [
+    '∞', 'π', 'φ', 'e', 'i', 'τ', 'γ',
+    '∑', '∏', '∫', '∮', '∂', '∇', '√', '∛',
+    '+', '−', '×', '÷', '±', '=', '≠', '≈', '≡', '∝',
+    '≤', '≥', '<', '>', '!',
+    '∈', '∉', '⊂', '⊃', '⊆', '⊇', '∩', '∪', '∅',
+    '⊥', '∥', '∠', '°', '→', '↦', '↔', '⇒', '⇔',
+    'α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'λ', 'μ', 'ν', 'ξ', 'ρ', 'σ', 'τ', 'φ', 'χ', 'ψ', 'ω', 'Δ', 'Σ', 'Π', 'Ω',
+    'ℝ', 'ℕ', 'ℤ', 'ℚ', 'ℂ',
+    '∃', '∀', '¬',
+  ];
+  // Classic formulas / identities — kept short and recognisable
+  const formulas = [
+    'a² + b² = c²',
+    'e^(iπ) + 1 = 0',
+    'Δ = b² − 4ac',
+    'x = (−b ± √Δ) / (2a)',
+    'sin² + cos² = 1',
+    'f\'(x) = lim (h→0) (f(x+h)−f(x))/h',
+    '∫ x dx = x²/2',
+    '∫ e^x dx = e^x',
+    '(u·v)\' = u\'v + uv\'',
+    '(eˣ)\' = eˣ',
+    'ln(ab) = ln(a) + ln(b)',
+    'cos(2x) = 1 − 2 sin²(x)',
+    '∑ k = n(n+1)/2',
+    '∑ 1/n² = π²/6',
+    'φ = (1 + √5)/2',
+    'P(B|A) = P(A∩B)/P(A)',
+    'u·v = ‖u‖·‖v‖·cos θ',
+    'V(X) = E(X²) − E(X)²',
+    'C(n,k) = n! / (k!(n−k)!)',
+    'uₙ = u₀ + n·r',
+    'uₙ = u₀ · qⁿ',
+    'y = ax + b',
+    'a/sin A = b/sin B',
+    'tan θ = sin θ / cos θ',
+    'lim eˣ/x = +∞',
+    '(a+b)² = a² + 2ab + b²',
+    '∇·E = ρ/ε₀',
+    '∂f/∂x',
+    '∮ B·dl = μ₀ I',
+    'log₂(8) = 3',
+    'a → b',
+    'f : ℝ → ℝ',
+    '∃ x ∈ ℝ',
+    '∀ ε > 0',
+    '|z| = √(a² + b²)',
+    '∑_{k=0}^{n} C(n,k) = 2ⁿ',
+    'n→∞',
+    'ax² + bx + c',
+    'd/dx (x²) = 2x',
+    'arctan(1) = π/4',
+    'cosh²−sinh² = 1',
+    '⟨u, v⟩',
+    'det(A) = ad − bc',
+  ];
+
+  // Build a stable but well-distributed placement.
+  // Use a small seeded PRNG so the layout looks "random" but stays consistent
+  // between renders within a session.
+  const rand = mulberry32(0xC0FFEE);
+  const pieces = [];
+
+  // 1) Big single-glyph anchors (very faint)
+  const bigGlyphs = ['∫', '∑', 'π', '∞', '∂', '√', 'Δ', 'Σ', '∏'];
+  for (let i = 0; i < bigGlyphs.length; i++) {
+    pieces.push({
+      text: bigGlyphs[i],
+      x: 15 + rand() * 75,
+      y: 5 + rand() * 90,
+      size: 80 + rand() * 80,
+      rot: -18 + rand() * 36,
+      tier: rand() < .4 ? 't3' : 't4',
+      cls: 'serif',
+    });
+  }
+
+  // 2) Mid-size short formulas (more legible)
+  for (let i = 0; i < 18; i++) {
+    pieces.push({
+      text: formulas[Math.floor(rand() * formulas.length)],
+      x: 5 + rand() * 90,
+      y: 4 + rand() * 90,
+      size: 14 + rand() * 18,
+      rot: -12 + rand() * 24,
+      tier: rand() < .35 ? 't2' : 't3',
+    });
+  }
+
+  // 3) Small single glyphs sprinkled everywhere
+  for (let i = 0; i < 64; i++) {
+    pieces.push({
+      text: glyphs[Math.floor(rand() * glyphs.length)],
+      x: rand() * 100,
+      y: rand() * 100,
+      size: 14 + rand() * 22,
+      rot: -25 + rand() * 50,
+      tier: ['t1','t2','t3'][Math.floor(rand() * 3)],
+    });
+  }
+
+  const html = pieces.map(p => {
+    const style = `top:${p.y.toFixed(2)}%;left:${p.x.toFixed(2)}%;font-size:${p.size.toFixed(1)}px;transform:translate(-50%,-50%) rotate(${p.rot.toFixed(1)}deg);`;
+    const cls = `m ${p.tier}${p.cls ? ' ' + p.cls : ''}`;
+    return `<span class="${cls}" style="${style}">${escapeHtml(p.text)}</span>`;
+  }).join('');
+  return `<div class="hero-deco" aria-hidden="true">${html}</div>`;
+}
+
+// Tiny deterministic PRNG (Mulberry32)
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = a;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
 // ----------------------------- Home ------------------------------------
 function renderHome() {
   const totalItems = state.flatItems.length;
@@ -288,6 +415,7 @@ function renderHome() {
   main.innerHTML = `
     <div class="main-inner">
       <section class="hero">
+        ${heroDeco()}
         <div class="eyebrow">Programme · Première · Spécialité</div>
         <h1>Toutes les <span class="gold">mathématiques</span><br>en un seul endroit.</h1>
         <p>Cours, diaporamas, exercices et annales — organisés chapitre par chapitre,

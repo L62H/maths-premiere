@@ -317,20 +317,48 @@ body.menu-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
   opacity: .55;
   pointer-events: none;
 }
-/* Floating math glyph (very subtle, decorative only) */
-.hero::after {
-  content: '∫';
+/* === Math constellation on the right side of the hero === */
+.hero-deco {
   position: absolute;
-  top: -14px; right: 6%;
-  font-family: 'Cambria Math', 'STIX Two Math', Georgia, serif;
-  font-size: clamp(150px, 18vw, 260px);
-  font-weight: 300;
-  line-height: 1;
-  color: var(--gold);
-  opacity: .07;
+  top: 0; bottom: 0; right: 0;
+  width: 55%;
+  max-width: 720px;
   pointer-events: none;
-  transform: rotate(8deg);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to left, black 35%, black 65%, transparent 100%);
+          mask-image: linear-gradient(to left, black 35%, black 65%, transparent 100%);
 }
+@media (max-width: 720px) {
+  .hero-deco {
+    width: 70%;
+    -webkit-mask-image: linear-gradient(to left, black 25%, transparent 95%);
+            mask-image: linear-gradient(to left, black 25%, transparent 95%);
+  }
+}
+.hero-deco .m {
+  position: absolute;
+  color: var(--gold);
+  font-family: 'Cambria Math', 'STIX Two Math', 'Latin Modern Math', var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* opacity tiers so symbols layer naturally */
+.hero-deco .m.t1 { opacity: .22; }
+.hero-deco .m.t2 { opacity: .16; }
+.hero-deco .m.t3 { opacity: .11; }
+.hero-deco .m.t4 { opacity: .07; }
+.hero-deco .m.upright { font-style: normal; }
+.hero-deco .m.serif   { font-family: var(--serif); }
+.hero-deco .m.bold    { font-weight: 700; }
+[data-theme="dark"] .hero-deco .m.t1 { opacity: .30; }
+[data-theme="dark"] .hero-deco .m.t2 { opacity: .22; }
+[data-theme="dark"] .hero-deco .m.t3 { opacity: .14; }
+[data-theme="dark"] .hero-deco .m.t4 { opacity: .09; }
 .hero > * { position: relative; z-index: 1; }
 .hero .eyebrow {
   display: inline-flex; align-items: center; gap: 12px;
