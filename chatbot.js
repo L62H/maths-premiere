@@ -930,12 +930,7 @@ export function mountChatbot() {
     hist.forEach(m => appendBubble(m.role, m.content, { skipHistory: true }));
   } else {
     appendBubble('assistant', `Bonjour ! Je suis **M. PELLETIER** 👋
-Je peux t'aider sur tout le programme de **Première Spécialité Maths** :
-• Donne-moi le nom d'un chapitre pour avoir son **formulaire complet** et les astuces bac.
-• Demande "**toutes les formules**" pour le récap général.
-• Pose ta question ou clique sur une suggestion.
-
-🚀 Pour des **exercices corrigés en détail**, clique sur **« Continuer avec Gemini »** en bas — je te prépare un prompt à coller directement.`,
+Pose-moi ta question, je suis là.`,
       { skipHistory: true });
   }
 
