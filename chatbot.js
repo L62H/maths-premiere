@@ -882,7 +882,9 @@ export function mountChatbot() {
     hist.forEach(m => appendBubble(m.role, m.content, { skipHistory: true }));
   } else {
     appendBubble('assistant', `Bonjour ! Je suis **M. PELLETIER** 👋
-Tape simplement le **nom d'un chapitre** pour voir la leçon entière.`,
+Tape simplement le **nom d'un chapitre** pour voir la leçon entière.
+
+Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas — un prompt prêt à l'emploi est copié automatiquement, tu n'as plus qu'à le coller. ✨`,
       { skipHistory: true });
   }
 }
