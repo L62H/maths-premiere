@@ -948,29 +948,29 @@ function autoGrow(e) {
 
 async function onSubmit(e) {
   e.preventDefault();
+  if (botBusy) return;                        // cooldown active — ignore
   const input = document.getElementById('ppInput');
   const msg = input.value.trim();
   if (!msg) return;
   input.value = '';
   input.style.height = '';
+  setBotBusy(true);                           // lock the send button
   appendBubble('user', msg);
   scrollMsgsToBottom();
 
-  // Typing indicator — show it for a short, deliberate moment even when the
-  // local answer is instant, so the conversation feels alive.
   const typing = appendBubble('assistant', '<span class="pp-typing"><i></i><i></i><i></i></span>', { html: true, transient: true });
-
+  // 1-second cooldown released after the bot fully finishes typing
+  const release = () => setTimeout(() => setBotBusy(false), 1000);
   try {
     const reply = localAnswer(msg) || `Pour voir la **leçon entière**, tape simplement le **nom d'un chapitre** (ex : « dérivation », « suites », « probabilité »…).
 
 Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas — un prompt prêt à l'emploi est copié automatiquement, tu n'as plus qu'à le coller. ✨`;
-    // Minimum visible "thinking" pause so the typing indicator actually shows
     await new Promise(r => setTimeout(r, 650 + Math.random() * 350));
     typing.remove();
-    appendBubble('assistant', reply);
+    appendBubble('assistant', reply, { onDone: release });
   } catch (err) {
     typing.remove();
-    appendBubble('assistant', `❗ ${err.message || 'Erreur inattendue.'}`);
+    appendBubble('assistant', `❗ ${err.message || 'Erreur inattendue.'}`, { onDone: release });
   }
 }
 
@@ -978,7 +978,6 @@ function appendBubble(role, content, opts = {}) {
   const msgs = document.getElementById('ppMsgs');
   const div = document.createElement('div');
   div.className = 'pp-msg pp-msg-' + role;
-  // Animate-typewriter for live bot replies; keep welcome/history/HTML instant.
   const shouldType = role === 'assistant' && !opts.html && !opts.transient && !opts.skipHistory;
   if (role === 'assistant') {
     const bodyHtml = shouldType ? '' : formatMessage(content, opts.html);
@@ -988,33 +987,43 @@ function appendBubble(role, content, opts = {}) {
   }
   msgs.appendChild(div);
   scrollMsgsToBottom();
-  if (shouldType) typewriterReveal(div.querySelector('.pp-msg-body'), content);
+  if (shouldType) {
+    typewriterReveal(div.querySelector('.pp-msg-body'), content, opts.onDone);
+  } else if (opts.onDone) {
+    opts.onDone();
+  }
   return div;
 }
 
-// Always-instant scroll-to-bottom. Called on every typewriter tick, so it
-// MUST be instant; a smooth scroll would be cancelled by the next call and
-// the view would never reach the bottom (the bug the user saw on PC).
-function scrollMsgsToBottom() {
-  const msgs = document.getElementById('ppMsgs');
-  if (!msgs) return;
-  msgs.scrollTop = msgs.scrollHeight;
-  // Belt + braces: re-pin on the next frame in case the layout reflows
-  // (avatar inline SVG sizing, font-size change, etc.).
-  requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
+// ===== Bot busy / cooldown =====
+let botBusy = false;
+function setBotBusy(busy) {
+  botBusy = busy;
+  const sendBtn = document.getElementById('ppSend');
+  if (sendBtn) sendBtn.disabled = busy;
 }
 
-// Type the text out word by word, scrolling along.
-function typewriterReveal(el, text) {
-  if (!el) return;
+// The actual scrollable container is .pp-body (NOT .pp-msgs which has no
+// overflow). Setting scrollTop on .pp-msgs did nothing, which is why the
+// view stayed put. Now we scroll the right element.
+function scrollMsgsToBottom() {
+  const body = document.getElementById('ppBody');
+  if (!body) return;
+  body.scrollTop = body.scrollHeight;
+  requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; });
+}
+
+// Type the text out word by word, scrolling along. Calls onDone when finished.
+function typewriterReveal(el, text, onDone) {
+  if (!el) { onDone && onDone(); return; }
   const tokens = text.match(/\s+|[^\s]+/g) || [];
   let acc = '';
   let i = 0;
   const speed = 22;
   const jitter = 18;
   function step() {
-    if (!el.isConnected) return;
-    if (i >= tokens.length) { scrollMsgsToBottom(); return; }
+    if (!el.isConnected) { onDone && onDone(); return; }
+    if (i >= tokens.length) { scrollMsgsToBottom(); onDone && onDone(); return; }
     acc += tokens[i++];
     el.innerHTML = formatMessage(acc);
     scrollMsgsToBottom();

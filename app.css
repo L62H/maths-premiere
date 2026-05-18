@@ -1399,6 +1399,15 @@ a.right:hover { color: var(--gold); }
 }
 .pp-send:hover { background: var(--gold-2); }
 .pp-send:active { transform: scale(.94); }
+.pp-send:disabled {
+  background: var(--surface-3);
+  color: var(--text-3);
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
+  filter: saturate(0.4);
+}
 
 .pp-suggestions {
   flex: none;
