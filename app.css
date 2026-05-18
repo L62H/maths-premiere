@@ -514,8 +514,44 @@ a.right:hover { color: var(--gold); }
 .chapter-head {
   position: relative;
   margin-bottom: 32px;
-  padding-bottom: 24px;
+  padding: 16px 0 24px;
   border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.chapter-head > *:not(.chapter-deco) { position: relative; z-index: 1; }
+
+/* Per-chapter floating math decoration */
+.chapter-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to left, black 55%, transparent 100%);
+          mask-image: linear-gradient(to left, black 55%, transparent 100%);
+  z-index: 0;
+}
+.chapter-deco .m {
+  position: absolute;
+  color: var(--gold);
+  font-family: 'Cambria Math', 'STIX Two Math', var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  user-select: none;
+}
+.chapter-deco .m.t2 { opacity: .35; }
+.chapter-deco .m.t3 { opacity: .22; }
+.chapter-deco .m.t4 { opacity: .14; }
+[data-theme="dark"] .chapter-deco .m.t2 { opacity: .55; }
+[data-theme="dark"] .chapter-deco .m.t3 { opacity: .38; }
+[data-theme="dark"] .chapter-deco .m.t4 { opacity: .24; }
+@media (max-width: 640px) {
+  .chapter-deco {
+    -webkit-mask-image: linear-gradient(to left, black 35%, transparent 100%);
+            mask-image: linear-gradient(to left, black 35%, transparent 100%);
+  }
 }
 .chapter-head::after {
   content: '';

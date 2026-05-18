@@ -556,6 +556,115 @@ function chapterCard(ch) {
   </a>`;
 }
 
+// ----------------------------- Chapter-specific decoration -------------
+// Per-chapter list of glyphs + short formulas to scatter behind the chapter
+// header — gives each page its own mathematical "skin".
+const CHAPTER_DECO_DATA = {
+  1: { // Second degré
+    big:    ['Δ', 'a', 'b', 'c'],
+    items:  ['Δ = b² − 4ac', 'x = (−b ± √Δ)/(2a)', 'ax² + bx + c', 'a(x − α)² + β',
+             'x₁ + x₂ = −b/a', 'x₁ · x₂ = c/a', '(a + b)² = a² + 2ab + b²', '(a − b)(a + b) = a² − b²']
+  },
+  2: { // Suites
+    big:    ['uₙ', 'r', 'q', '∑'],
+    items:  ['uₙ = u₀ + n·r', 'uₙ = u₀ · qⁿ', 'uₙ₊₁ = uₙ + r', 'uₙ₊₁ = q · uₙ',
+             '1 + 2 + … + n = n(n+1)/2', 'Σ = (n+1)(u₀ + uₙ)/2', 'lim qⁿ = 0 si |q| < 1']
+  },
+  3: { // Dérivation
+    big:    ['f\'', 'lim', 'eˣ', 'ln'],
+    items:  ['f\'(x) = lim (h→0) (f(x+h)−f(x))/h', '(xⁿ)\' = n·xⁿ⁻¹', '(eˣ)\' = eˣ', '(ln x)\' = 1/x',
+             '(u·v)\' = u\'v + uv\'', '(u/v)\' = (u\'v − uv\')/v²', '(cos x)\' = −sin x', '(sin x)\' = cos x',
+             'y = f\'(a)(x − a) + f(a)']
+  },
+  4: { // Géométrie repérée
+    big:    ['→', '‖·‖', 'AB'],
+    items:  ['‖AB‖ = √((x_B − x_A)² + (y_B − y_A)²)', 'AB(x_B − x_A ; y_B − y_A)',
+             'y = mx + p', 'ax + by + c = 0', 'm = (y_B − y_A)/(x_B − x_A)',
+             'm·m\' = −1', 'I = ((x_A+x_B)/2 ; (y_A+y_B)/2)', 'xy\' − x\'y = 0']
+  },
+  5: { // Probabilité conditionnelle
+    big:    ['P', '∩', '∪'],
+    items:  ['P(B|A) = P(A∩B)/P(A)', 'P(A∪B) = P(A) + P(B) − P(A∩B)',
+             'P(B) = P(A)·P(B|A) + P(A‾)·P(B|A‾)', 'P(A|B) = P(B|A)·P(A)/P(B)',
+             'P(A∩B) = P(A)·P(B)', '0 ≤ P(A) ≤ 1', 'P(A‾) = 1 − P(A)']
+  },
+  6: { // Étude de fonctions par la dérivation
+    big:    ['f\'', '↗', '↘'],
+    items:  ['f\'(x) > 0 ⟹ f croissante', 'f\'(x) < 0 ⟹ f décroissante',
+             'f\'(x₀) = 0 ⟹ extremum local', 'TVI : f continue, f(a)·f(b) < 0',
+             'lim eˣ/x = +∞', 'lim ln x / x = 0', 'tableau de variations']
+  },
+  7: { // Cosinus et Sinus
+    big:    ['cos', 'sin', 'π', 'θ'],
+    items:  ['cos²x + sin²x = 1', 'cos(−x) = cos x', 'sin(−x) = −sin x',
+             'cos(π − x) = −cos x', 'sin(π − x) = sin x', 'cos(π/2 − x) = sin x',
+             'tan θ = sin θ / cos θ', 'cos(π/3) = 1/2', 'sin(π/6) = 1/2',
+             'cos(π/4) = √2/2', 'cos(2x) = 1 − 2 sin² x', '2π = 360°']
+  },
+  8: { // Fonction exponentielle
+    big:    ['eˣ', 'e', 'ln'],
+    items:  ['e⁰ = 1', 'e^(a+b) = eᵃ · eᵇ', 'e^(a−b) = eᵃ/eᵇ', '(eᵃ)ⁿ = e^(na)',
+             'e^(−a) = 1/eᵃ', '(eˣ)\' = eˣ', '(e^u)\' = u\'·e^u',
+             'lim eˣ = +∞ en +∞', 'lim eˣ = 0 en −∞', 'lim eˣ/x = +∞',
+             'ln(eˣ) = x', 'eˣ > 0']
+  },
+  9: { // Variable aléatoire
+    big:    ['E(X)', 'V(X)', 'σ', 'B(n,p)'],
+    items:  ['E(X) = Σ xᵢ · P(X = xᵢ)', 'V(X) = E(X²) − E(X)²', 'σ(X) = √V(X)',
+             'E(aX + b) = a·E(X) + b', 'V(aX + b) = a² · V(X)',
+             'P(X = k) = C(n,k) · pᵏ(1−p)ⁿ⁻ᵏ', 'E(B(n,p)) = np', 'V(B(n,p)) = np(1−p)',
+             'C(n,k) = n!/(k!(n−k)!)']
+  },
+  10: { // Produit scalaire
+    big:    ['u·v', 'cos θ', '‖u‖', '⊥'],
+    items:  ['u·v = xx\' + yy\'', 'u·v = ‖u‖·‖v‖·cos θ', '‖u‖ = √(x² + y²)',
+             '‖u‖² = u·u', 'u ⊥ v ⟺ u·v = 0',
+             '‖u + v‖² = ‖u‖² + 2 u·v + ‖v‖²', '(u + v)·(u − v) = ‖u‖² − ‖v‖²',
+             'a² = b² + c² − 2bc · cos Â']
+  },
+  0: { // Annales
+    big:    ['★', 'Bac', 'Spé'],
+    items:  ['sujets corrigés', 'épreuves d\'annales', 'révisions bac blanc',
+             'Δ · racines · variations', 'P(B|A) · B(n,p)', 'u·v · ‖u‖ · cos θ']
+  },
+};
+
+function chapterDeco(ch) {
+  if (!ch) return '';
+  const data = CHAPTER_DECO_DATA[ch.number || 0] || { big: ['∑'], items: [] };
+  const rand = mulberry32(0xBADC + (ch.number || 0) * 17);
+  const pieces = [];
+  // 3-4 big anchor glyphs (very subtle)
+  for (let i = 0; i < data.big.length; i++) {
+    pieces.push({
+      text: data.big[i],
+      x: 30 + rand() * 65,
+      y: 5 + rand() * 90,
+      size: 60 + rand() * 50,
+      rot: -12 + rand() * 24,
+      tier: rand() < .4 ? 't3' : 't4',
+    });
+  }
+  // Formula scatter
+  for (let i = 0; i < 18; i++) {
+    const t = data.items[Math.floor(rand() * data.items.length)] || '';
+    if (!t) continue;
+    pieces.push({
+      text: t,
+      x: 5 + rand() * 90,
+      y: 4 + rand() * 90,
+      size: 12 + rand() * 14,
+      rot: -10 + rand() * 20,
+      tier: rand() < .3 ? 't2' : 't3',
+    });
+  }
+  const html = pieces.map(p => {
+    const style = `top:${p.y.toFixed(2)}%;left:${p.x.toFixed(2)}%;font-size:${p.size.toFixed(1)}px;transform:translate(-50%,-50%) rotate(${p.rot.toFixed(1)}deg);`;
+    return `<span class="m ${p.tier}" style="${style}">${escapeHtml(p.text)}</span>`;
+  }).join('');
+  return `<div class="chapter-deco" aria-hidden="true">${html}</div>`;
+}
+
 // ----------------------------- Chapter detail --------------------------
 function renderChapter(id, opts = {}) {
   const ch = state.manifest.chapters.find(c => c.id === id);
@@ -574,6 +683,7 @@ function renderChapter(id, opts = {}) {
   main.innerHTML = `
     <div class="main-inner">
       <div class="chapter-head">
+        ${chapterDeco(ch)}
         <div class="crumb">
           <a href="#/">Accueil</a><span class="sep">/</span><span>Chapitre ${ch.number || '★'}</span>
         </div>

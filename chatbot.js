@@ -843,33 +843,11 @@ export function mountChatbot() {
         <strong>M. PELLETIER</strong>
         <em>professeur assistant · maths</em>
       </div>
-      <button class="pp-settings icon-btn" aria-label="Paramètres" title="Configurer la clé API">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
-      </button>
       <button class="pp-close icon-btn" aria-label="Fermer">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
     </header>
     <div class="pp-body" id="ppBody">
-      <div class="pp-config" id="ppConfig" hidden>
-        <h3>Configurer M. PELLETIER</h3>
-        <p>
-          Sans clé API, je donne des réponses guidées sur les grands thèmes.<br>
-          Avec une clé Anthropic, je peux vraiment converser et corriger tes exercices.
-        </p>
-        <label class="pp-key-label">
-          <span>Clé API Anthropic</span>
-          <input type="password" id="ppKey" placeholder="sk-ant-..." autocomplete="off"/>
-        </label>
-        <div class="pp-row">
-          <button class="pp-btn pp-btn-primary" id="ppKeySave">Enregistrer</button>
-          <button class="pp-btn" id="ppKeyClear">Retirer</button>
-        </div>
-        <p class="pp-note">
-          🔒 Ta clé reste sur ton appareil (stockage local du navigateur). Elle n'est jamais envoyée à GitHub Pages.
-          Tu peux en créer une sur <a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a>.
-        </p>
-      </div>
       <div class="pp-msgs" id="ppMsgs" aria-live="polite"></div>
     </div>
     <form class="pp-input" id="ppForm">
@@ -890,9 +868,6 @@ export function mountChatbot() {
   // Wire UI
   btn.addEventListener('click', toggleChat);
   panel.querySelector('.pp-close').addEventListener('click', closeChat);
-  panel.querySelector('.pp-settings').addEventListener('click', toggleConfig);
-  panel.querySelector('#ppKeySave').addEventListener('click', saveKeyFromInput);
-  panel.querySelector('#ppKeyClear').addEventListener('click', clearKey);
   panel.querySelector('#ppForm').addEventListener('submit', onSubmit);
   panel.querySelector('#ppGemini').addEventListener('click', handoffGemini);
   const input = panel.querySelector('#ppInput');
@@ -930,28 +905,6 @@ function closeChat() {
   panelOpen = false;
   setTimeout(() => { if (!panelOpen) panel.hidden = true; }, 240);
 }
-function toggleConfig() {
-  const c = document.getElementById('ppConfig');
-  c.hidden = !c.hidden;
-  if (!c.hidden) document.getElementById('ppKey').value = '';
-}
-function saveKeyFromInput() {
-  const v = document.getElementById('ppKey').value.trim();
-  if (!v) { toast2('Saisis une clé d\'abord'); return; }
-  if (!v.startsWith('sk-ant-')) {
-    toast2('La clé Anthropic commence par sk-ant-');
-    return;
-  }
-  setKey(v);
-  document.getElementById('ppConfig').hidden = true;
-  appendBubble('assistant', `✅ Clé enregistrée. Je peux maintenant te répondre par IA. Pose ta question !`);
-}
-function clearKey() {
-  setKey(null);
-  document.getElementById('ppKey').value = '';
-  toast2('Clé retirée');
-}
-
 function autoGrow(e) {
   const t = e.currentTarget;
   t.style.height = 'auto';
@@ -971,19 +924,14 @@ async function onSubmit(e) {
   const typing = appendBubble('assistant', '<span class="pp-typing"><i></i><i></i><i></i></span>', { html: true, transient: true });
 
   try {
-    let reply;
-    if (hasKey()) {
-      reply = await askClaude(msg);
-    } else {
-      reply = localAnswer(msg) || `Pour voir la **leçon entière**, tape simplement le **nom d'un chapitre** (ex : « dérivation », « suites », « probabilité »…).
+    const reply = localAnswer(msg) || `Pour voir la **leçon entière**, tape simplement le **nom d'un chapitre** (ex : « dérivation », « suites », « probabilité »…).
 
 Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas — un prompt prêt à l'emploi est copié automatiquement, tu n'as plus qu'à le coller. ✨`;
-    }
     typing.remove();
     appendBubble('assistant', reply);
   } catch (err) {
     typing.remove();
-    appendBubble('assistant', `❗ ${err.message || 'Erreur inattendue.'}\nVérifie ta clé API dans les paramètres.`);
+    appendBubble('assistant', `❗ ${err.message || 'Erreur inattendue.'}`);
   }
 }
 
