@@ -1179,19 +1179,43 @@ a.right:hover { color: var(--gold); }
 [data-theme="dark"] .pelletier-fab { background: var(--surface-2); }
 
 .pelletier-panel {
-  position: fixed; top: 0; right: 0;
+  position: fixed;
+  top: 0; right: 0;
   width: min(440px, 100vw);
-  height: 100vh; height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   background: var(--surface);
   border-left: 1px solid var(--line);
   box-shadow: var(--shadow-3);
   display: flex; flex-direction: column;
-  z-index: 110;
+  z-index: 9999;       /* above EVERYTHING */
   transform: translateX(100%);
   transition: transform var(--base) var(--ease);
+  isolation: isolate;
+  overscroll-behavior: contain;
 }
 .pelletier-panel.open { transform: translateX(0); }
 [data-theme="dark"] .pelletier-panel { background: var(--surface); }
+
+/* When the chat is open on small screens, lock the body so the home page
+   behind cannot scroll or leak through. */
+@media (max-width: 640px) {
+  body.pp-open {
+    overflow: hidden;
+    /* iOS Safari: prevent rubber-band scroll behind the panel */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+  .pelletier-panel {
+    /* belt + braces : cover every pixel */
+    inset: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+  }
+}
 
 .pp-head {
   display: flex; align-items: center; gap: 12px;

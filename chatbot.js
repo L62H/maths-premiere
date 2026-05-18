@@ -904,8 +904,13 @@ Pour une **réponse plus précise** (corriger un exercice, expliquer en détail)
 function toggleChat() {
   panelOpen ? closeChat() : openChat();
 }
+let _savedScrollY = 0;
 function openChat() {
   const panel = document.getElementById('pelletierPanel');
+  // Save current scroll, lock the body where it is so the home page
+  // behind the panel cannot rubber-band on iOS.
+  _savedScrollY = window.scrollY || window.pageYOffset || 0;
+  document.body.style.top = `-${_savedScrollY}px`;
   panel.hidden = false;
   requestAnimationFrame(() => panel.classList.add('open'));
   panelOpen = true;
@@ -918,6 +923,9 @@ function closeChat() {
   const panel = document.getElementById('pelletierPanel');
   panel.classList.remove('open');
   document.body.classList.remove('pp-open');
+  document.body.style.top = '';
+  // Restore the original scroll position
+  window.scrollTo(0, _savedScrollY);
   panelOpen = false;
   setTimeout(() => { if (!panelOpen) panel.hidden = true; }, 240);
 }
