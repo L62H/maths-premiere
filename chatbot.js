@@ -900,7 +900,6 @@ export function mountChatbot() {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l18-9-9 18-2-7-7-2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" fill="currentColor" fill-opacity=".2"/></svg>
       </button>
     </form>
-    <div class="pp-suggestions" id="ppSuggestions"></div>
     <div class="pp-gemini-row">
       <button class="pp-gemini" id="ppGemini" type="button" title="Copier le prompt M. PELLETIER et ouvrir Gemini">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14.5 9.5 22 12 14.5 14.5 12 22 9.5 14.5 2 12 9.5 9.5 Z" fill="currentColor" opacity=".95"/></svg>
@@ -930,11 +929,9 @@ export function mountChatbot() {
     hist.forEach(m => appendBubble(m.role, m.content, { skipHistory: true }));
   } else {
     appendBubble('assistant', `Bonjour ! Je suis **M. PELLETIER** 👋
-Pose-moi ta question, je suis là.`,
+Tape simplement le **nom d'un chapitre** pour voir la leçon entière.`,
       { skipHistory: true });
   }
-
-  renderSuggestions();
 }
 
 function toggleChat() {
@@ -1042,33 +1039,6 @@ function formatMessage(text, isHtml) {
   return t;
 }
 function escape(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
-
-const SUGGESTIONS = [
-  'Comment résoudre une équation du 2nd degré ?',
-  'Donne-moi la dérivée de (3x²+1)·eˣ',
-  'Explique-moi la formule de Bayes',
-  'Comment trouver le sommet d\'une parabole ?',
-  'Limite de eˣ/x en +∞ ?',
-  'Que vaut cos(π/3) ?',
-  'Variance d\'une loi binomiale B(10, 0.3) ?',
-  'Aide-moi à étudier f(x) = x³ − 3x',
-  'Vecteur normal de la droite 2x + 3y − 6 = 0 ?',
-  'Comment démontrer par récurrence ?',
-  'Différence entre suite arithmétique et géométrique ?',
-];
-function renderSuggestions() {
-  const c = document.getElementById('ppSuggestions');
-  if (!c) return;
-  // pick 4 random suggestions for variety
-  const a = [...SUGGESTIONS].sort(() => Math.random() - 0.5).slice(0, 4);
-  c.innerHTML = a.map(s => `<button class="pp-chip" type="button">${escape(s)}</button>`).join('');
-  c.querySelectorAll('.pp-chip').forEach(b => b.addEventListener('click', () => {
-    const i = document.getElementById('ppInput');
-    i.value = b.textContent;
-    i.focus();
-    document.getElementById('ppForm').requestSubmit();
-  }));
-}
 
 async function handoffGemini() {
   // Combine the persona prompt with the last user question if any
