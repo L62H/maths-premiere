@@ -1467,6 +1467,15 @@ a.right:hover { color: var(--gold); }
   .pp-key-label input,
   #searchInput,
   .page-counter input { font-size: 16px !important; }
+
+  /* The viewer toolbar overflowed on phones: too many icons. Hide what is
+     either useless or duplicated on mobile so the essentials all fit on
+     one line and the last icon stops getting clipped. */
+  .viewer-controls #vThumbsToggle { display: none; }   /* thumbnails are hidden on mobile anyway */
+  .viewer-controls #vDownloadOrig { display: none; }    /* keep the PDF download only */
+  .viewer-bar { gap: 1px; padding: 0 4px; }
+  .icon-btn { width: 32px; height: 32px; }
+  .page-counter { padding: 0 2px; }
 }
 /* Hide the floating M. PELLETIER button while the panel is open, so it
    doesn't peek through any gap left by the keyboard. */

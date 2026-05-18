@@ -1231,15 +1231,18 @@ function updateFsIcon() {
 }
 
 function toggleThumbs() {
+  // On phones the thumbnail panel is hidden by CSS regardless — toggling it
+  // would just kick off a costly re-render of every page for no visible
+  // benefit (and was the cause of the occasional crash). Bail out early.
+  if (window.matchMedia('(max-width: 640px)').matches) return;
   const v = document.getElementById('viewer');
   const off = v.classList.toggle('thumbs-off');
-  document.getElementById('vThumbsToggle').classList.toggle('active', !off);
+  document.getElementById('vThumbsToggle')?.classList.toggle('active', !off);
   localStorage.setItem('mp1.thumbs', off ? 'off' : 'on');
   // Re-render visible page since slot width changed
   setTimeout(() => {
     for (const c of state.pageCanvases.values()) c.dataset.rendered = '';
     renderPage(state.page);
-    // also gotoPage to keep scroll position aligned
     gotoPage(state.page);
   }, 280);
 }
