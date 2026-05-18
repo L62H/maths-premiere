@@ -129,154 +129,540 @@ CE QUE TU PEUX FAIRE :
 QUAND TU NE SAIS PAS, TU LE DIS HONNÊTEMENT.`;
 
 // ===================================================================
-// Local fallback (no API key) : pattern-matched suggestions
+// Local fallback (no API key) : large pattern-matched formulaire
+// Each entry covers a topic with EVERY important formula + a "leçon
+// rapide" and "astuces bac". Keep the order specific-first so longer
+// topics catch before generic words.
 // ===================================================================
 const FALLBACK_RESPONSES = [
   {
-    keys: ['second degré', 'discriminant', 'delta', 'racine', 'parabole', 'trinôme', 'b² − 4ac', 'b²-4ac'],
-    answer: `Pour résoudre **ax² + bx + c = 0** :
-1. Calcule le discriminant **Δ = b² − 4ac**.
-2. Si **Δ > 0** : deux racines distinctes **x₁,₂ = (−b ± √Δ) / (2a)**.
-3. Si **Δ = 0** : une racine double **x = −b / (2a)**.
-4. Si **Δ < 0** : aucune racine réelle.
+    keys: ['formulaire', 'toutes les formules', 'liste des formules', 'tout le programme'],
+    answer: `📘 **FORMULAIRE — Première Spécialité Maths**
 
-Forme canonique : **a(x − α)² + β** avec **α = −b/(2a)** et **β = f(α)**.
-Le sommet de la parabole est en **(α, β)**.
+**1. Second degré** — ax² + bx + c
+• Δ = b² − 4ac · racines x = (−b ± √Δ)/(2a) · sommet α = −b/(2a)
+• Factorisation si Δ ≥ 0 : a(x − x₁)(x − x₂)
+• Forme canonique : a(x − α)² + β
 
-📘 Consulte le **chapitre 1 Second degré** sur le site.`
+**2. Suites**
+• Arithmétique : uₙ = u₀ + n·r ; Σ = (n+1)(u₀+uₙ)/2
+• Géométrique : uₙ = u₀·qⁿ ; Σ = u₀(1−qⁿ⁺¹)/(1−q)
+
+**3. Dérivation**
+• (xⁿ)' = n·xⁿ⁻¹ · (√x)' = 1/(2√x) · (1/x)' = −1/x²
+• (eˣ)' = eˣ · (ln x)' = 1/x · (sin x)' = cos x · (cos x)' = −sin x
+• (uv)' = u'v + uv' · (u/v)' = (u'v − uv')/v² · (u∘v)' = u'(v)·v'
+
+**4. Géométrie repérée**
+• AB(x_B−x_A ; y_B−y_A) · ‖AB‖ = √((x_B−x_A)² + (y_B−y_A)²)
+• Droite : ax + by + c = 0 (n = (a, b) normal) · y = mx + p
+
+**5. Probabilité conditionnelle**
+• P(B|A) = P(A∩B)/P(A) · Bayes : P(A|B) = P(B|A)·P(A)/P(B)
+• Indépendance : P(A∩B) = P(A)·P(B)
+
+**6. Étude de fonctions par la dérivation**
+• f'(x) > 0 ⇒ f croissante · f'(x) < 0 ⇒ f décroissante
+• Extremum local ⇔ f'(x₀) = 0 et changement de signe
+
+**7. Cosinus & Sinus**
+• cos² + sin² = 1 · cos(−x) = cos x · sin(−x) = −sin x
+• cos(π−x) = −cos x · sin(π−x) = sin x · cos(π/2−x) = sin x
+
+**8. Fonction exponentielle**
+• e⁰ = 1 · e^(a+b) = eᵃ·eᵇ · (eˣ)' = eˣ · ln(eˣ) = x
+
+**9. Variable aléatoire**
+• E(X) = Σ xᵢ·P(X=xᵢ) · V(X) = E(X²) − E(X)² · σ = √V
+• Binomiale B(n,p) : P(X=k) = C(n,k)·pᵏ(1−p)ⁿ⁻ᵏ · E = np · V = np(1−p)
+
+**10. Produit scalaire**
+• u·v = xx' + yy' = ‖u‖‖v‖cos θ
+• u ⊥ v ⇔ u·v = 0
+• ‖u + v‖² = ‖u‖² + 2u·v + ‖v‖²
+
+Demande-moi n'importe quel sujet pour plus de détails 💡`
   },
-  {
-    keys: ['dérivée', 'dériver', 'tangente', 'pente', 'taux de variation', 'derivable'],
-    answer: `Quelques dérivées à connaître par cœur :
-• (k)' = 0
-• (xⁿ)' = n·xⁿ⁻¹
-• (√x)' = 1/(2√x)
-• (1/x)' = −1/x²
-• (eˣ)' = eˣ
-• (ln x)' = 1/x
-• (sin x)' = cos x, (cos x)' = −sin x
 
-Règles :
+  {
+    keys: ['second degré', 'discriminant', 'delta', 'parabole', 'trinôme', 'b² − 4ac', 'b²-4ac', 'factoriser un trinôme', 'sommet'],
+    answer: `**Second degré — ax² + bx + c**
+
+🔹 **Discriminant** : Δ = b² − 4ac
+• Δ > 0 : deux racines **x₁,₂ = (−b ± √Δ) / (2a)**, factorisation **a(x − x₁)(x − x₂)**
+• Δ = 0 : une racine double **x₀ = −b / (2a)**, factorisation **a(x − x₀)²**
+• Δ < 0 : pas de racines réelles, signe constant de a
+
+🔹 **Forme canonique** : f(x) = a(x − α)² + β
+• α = −b/(2a) (abscisse du sommet)
+• β = f(α) (ordonnée du sommet)
+• Axe de symétrie : x = α
+
+🔹 **Signe de f**
+• Si Δ > 0 : du signe de a à l'extérieur des racines, du signe opposé entre
+• Si Δ ≤ 0 : du signe de a partout (sauf en x₀ si Δ = 0)
+
+🔹 **Somme / produit des racines** (relations de Viète)
+• x₁ + x₂ = −b/a · x₁·x₂ = c/a
+
+🎯 **Astuce bac** : si tu vois ax² + bx + c, vérifie aussi si c'est une **identité remarquable** : (a+b)² = a² + 2ab + b², (a−b)² = a² − 2ab + b², (a+b)(a−b) = a² − b². Ça évite parfois le discriminant.
+
+📘 **Chapitre 1 Second degré**.`
+  },
+
+  {
+    keys: ['suite arithmétique', 'arithmétique', 'arithmetique', 'raison r', 'récurrence arithmétique'],
+    answer: `**Suite arithmétique** de premier terme u₀ (ou u₁) et raison r
+
+🔹 **Récurrence** : uₙ₊₁ = uₙ + r
+🔹 **Forme explicite** : **uₙ = u₀ + n·r** (ou uₙ = u_p + (n − p)·r)
+🔹 **Sens de variation** : croissante si r > 0, décroissante si r < 0
+
+🔹 **Somme des n+1 premiers termes** :
+**S = u₀ + u₁ + … + uₙ = (n+1) · (u₀ + uₙ) / 2**
+
+Cas classique : 1 + 2 + 3 + … + n = **n(n+1)/2**
+
+🎯 Pour **montrer** qu'une suite est arithmétique : prouve que uₙ₊₁ − uₙ est constant.
+
+📘 **Chapitre 2 Les suites**.`
+  },
+
+  {
+    keys: ['suite géométrique', 'géométrique', 'geometrique', 'raison q', 'qⁿ'],
+    answer: `**Suite géométrique** de premier terme u₀ (ou u₁) et raison q ≠ 0
+
+🔹 **Récurrence** : uₙ₊₁ = q · uₙ
+🔹 **Forme explicite** : **uₙ = u₀ · qⁿ** (ou uₙ = u_p · q^(n − p))
+
+🔹 **Sens de variation** (cas u₀ > 0)
+• q > 1 : croissante
+• 0 < q < 1 : décroissante
+• q < 0 : alterne en signe
+
+🔹 **Somme** (q ≠ 1) :
+**S = u₀ + u₀q + … + u₀qⁿ = u₀ · (1 − qⁿ⁺¹) / (1 − q)**
+
+🔹 **Limite**
+• |q| < 1 : qⁿ → 0
+• q > 1 : qⁿ → +∞
+• q ≤ −1 : pas de limite
+
+🎯 Pour **montrer** qu'une suite est géométrique : prouve que uₙ₊₁ / uₙ est constant.
+
+📘 **Chapitre 2 Les suites**.`
+  },
+
+  {
+    keys: ['suite', 'récurrence', 'recurrence', 'monotone', 'majorée', 'minorée', 'limite suite'],
+    answer: `**Suites — boîte à outils**
+
+🔹 **Sens de variation** : étudie le signe de uₙ₊₁ − uₙ (ou le rapport uₙ₊₁/uₙ si > 0).
+🔹 **Majorée / minorée** : montre par récurrence que uₙ ≤ M (ou ≥ m).
+🔹 **Convergente** : si croissante ET majorée, ou décroissante ET minorée.
+
+🔹 **Récurrence** (preuve)
+1. **Initialisation** : vérifie P(0) (ou le premier rang).
+2. **Hérédité** : suppose P(n) vraie, démontre P(n+1).
+3. **Conclusion** : P(n) vraie pour tout n.
+
+🔹 **Limite** typique
+• Suite arithmétique : limite = +∞ (r > 0), −∞ (r < 0), constante (r = 0)
+• Suite géométrique : voir critère |q| vs 1
+
+🎯 **Astuce bac** : pour une suite définie par uₙ₊₁ = f(uₙ), souvent on commence par montrer qu'elle est monotone et bornée, puis on calcule sa limite en résolvant ℓ = f(ℓ).
+
+📘 **Chapitre 2 Les suites**.`
+  },
+
+  {
+    keys: ['dérivée', 'deriver', 'tangente', 'taux de variation', 'derivable', 'nombre dérivé'],
+    answer: `**Dérivation — formulaire complet**
+
+🔹 **Définition** : f'(x₀) = lim (h→0) [f(x₀+h) − f(x₀)] / h
+
+🔹 **Dérivées usuelles**
+| f(x) | f'(x) |
+|---|---|
+| k (constante) | 0 |
+| xⁿ | n·xⁿ⁻¹ |
+| 1/x | −1/x² |
+| 1/xⁿ | −n/xⁿ⁺¹ |
+| √x | 1/(2√x) |
+| eˣ | eˣ |
+| ln x | 1/x |
+| sin x | cos x |
+| cos x | −sin x |
+| tan x | 1 + tan²x = 1/cos²x |
+
+🔹 **Règles d'opération**
 • (u + v)' = u' + v'
 • (k·u)' = k·u'
 • (u·v)' = u'v + uv'
-• (u/v)' = (u'v − uv')/v²
-• (u(v(x)))' = u'(v(x))·v'(x)
+• (u/v)' = (u'v − uv') / v²  (v ≠ 0)
+• (u ∘ v)'(x) = u'(v(x)) · v'(x)
+• (uⁿ)' = n·uⁿ⁻¹·u'
+• (eᵘ)' = u'·eᵘ
+• (ln u)' = u'/u (u > 0)
 
-📘 Voir **chapitre 3 Dérivation** et **chapitre 6 Applications**.`
+🔹 **Équation de la tangente** en a : **y = f'(a)(x − a) + f(a)**
+
+🎯 **Astuce bac** : pour un produit, regarde toujours s'il vaut mieux développer d'abord. (3x² + 5)·(x − 7) = c'est plus rapide de développer ici.
+
+📘 **Chapitres 3 Dérivation** et **6 Étude de fonctions**.`
   },
+
   {
-    keys: ['suite', 'arithmétique', 'géométrique', 'récurrence', 'arithmetique', 'geometrique'],
-    answer: `**Suite arithmétique** de raison r :
-• uₙ₊₁ = uₙ + r
-• Formule explicite : **uₙ = u₀ + n·r**
-• Somme : **S = (n+1)·(u₀ + uₙ)/2**
+    keys: ['étude de fonction', 'variations', 'tableau de variations', 'extremum', 'minimum', 'maximum'],
+    answer: `**Étude de fonction — méthode**
 
-**Suite géométrique** de raison q ≠ 1 :
-• uₙ₊₁ = q · uₙ
-• Formule explicite : **uₙ = u₀ · qⁿ**
-• Somme : **S = u₀·(1 − qⁿ⁺¹)/(1 − q)**
+1. **Domaine de définition** D_f.
+2. **Limites aux bornes** de D_f.
+3. **Dérivée** f'(x).
+4. **Signe de f'(x)** (souvent résoudre f'(x) > 0).
+5. **Tableau de variations** : flèches selon le signe de f'.
+6. **Extremums** : f'(x₀) = 0 et changement de signe ⟹ extremum local.
+7. **Asymptotes** (horizontale, verticale, oblique).
 
-Pour montrer une propriété sur uₙ pour tout n : **récurrence** (initialisation + hérédité).
+🔹 **Lien f' / sens de variation**
+• f'(x) > 0 sur I ⇒ f croissante sur I
+• f'(x) < 0 sur I ⇒ f décroissante sur I
+• f'(x) = 0 isolé : tangente horizontale, à étudier
 
-📘 Voir **chapitre 2 Les suites**.`
+🔹 **Convexité** (concavité)
+• f''(x) > 0 sur I ⇒ f convexe (∪) sur I
+• f''(x) < 0 sur I ⇒ f concave (∩) sur I
+• Point d'inflexion : f'' change de signe
+
+🎯 **Astuce bac** : si tu vois "déterminer le nombre de solutions de f(x) = k", utilise le théorème des valeurs intermédiaires + monotonie.
+
+📘 **Chapitre 6 Étude de fonctions**.`
   },
+
   {
-    keys: ['proba', 'probabilité', 'arbre', 'conditionnelle', 'bayes', 'événement', 'indépendant'],
-    answer: `**Probabilité conditionnelle** :
-• P(B|A) = **P(A ∩ B) / P(A)** (probabilité de B sachant A)
+    keys: ['probabilité', 'probabilite', 'proba', 'arbre', 'conditionnelle', 'bayes', 'événement', 'indépendant', 'totales'],
+    answer: `**Probabilités conditionnelles — toutes les formules**
 
-**Formule des probabilités totales** (avec A, A‾ système complet) :
-• P(B) = P(A)·P(B|A) + P(A‾)·P(B|A‾)
+🔹 **Probabilité conditionnelle**
+**P(B | A) = P(A ∩ B) / P(A)** (probabilité de B sachant A)
 
-**Formule de Bayes** :
-• P(A|B) = P(B|A)·P(A) / P(B)
+🔹 **Intersection** : P(A ∩ B) = P(A) · P(B | A) = P(B) · P(A | B)
 
-**Indépendance** : A et B indépendants ⟺ P(A ∩ B) = P(A)·P(B).
+🔹 **Probabilités totales** (A, A‾ système complet)
+**P(B) = P(A)·P(B|A) + P(A‾)·P(B|A‾)**
 
-📘 Voir **chapitre 5 Probabilité conditionnelle**.`
+Plus généralement avec {A₁, …, Aₙ} système complet :
+P(B) = Σ P(Aᵢ) · P(B | Aᵢ)
+
+🔹 **Formule de Bayes**
+**P(A | B) = [P(B | A) · P(A)] / P(B)**
+
+🔹 **Indépendance**
+A et B indépendants ⟺ **P(A ∩ B) = P(A) · P(B)**
+⟺ P(B | A) = P(B)
+
+🔹 **Complémentaire** : P(A‾) = 1 − P(A)
+
+🔹 **Réunion** : P(A ∪ B) = P(A) + P(B) − P(A ∩ B)
+
+🎯 **Astuce bac** : dessine **toujours** un arbre pondéré ! Les probas sur les branches partantes d'un même nœud somment à 1.
+
+📘 **Chapitre 5 Probabilité conditionnelle**.`
   },
+
   {
-    keys: ['exponentielle', 'exp', 'eˣ', 'e^x', 'logarithme', 'ln'],
-    answer: `**Fonction exponentielle** :
-• exp(0) = 1
-• exp(a + b) = exp(a)·exp(b)
-• exp(a − b) = exp(a)/exp(b)
-• exp(n·a) = exp(a)ⁿ
+    keys: ['exponentielle', 'exp', 'eˣ', 'e^x', 'logarithme', 'ln', 'fonction exponentielle'],
+    answer: `**Fonction exponentielle**
+
+🔹 **Définition** : exp est l'unique fonction f dérivable sur ℝ telle que **f' = f** et **f(0) = 1**. On note exp(x) = eˣ.
+
+🔹 **Propriétés algébriques**
+• e⁰ = 1 · e¹ = e ≈ 2,718
+• e^(a+b) = eᵃ · eᵇ
+• e^(a−b) = eᵃ / eᵇ
+• (eᵃ)ⁿ = e^(n·a)
+• e^(−a) = 1 / eᵃ
+• eˣ > 0 pour tout x ∈ ℝ
+
+🔹 **Dérivation**
 • (eˣ)' = eˣ
-• eˣ > 0 toujours, et lim (x→+∞) eˣ = +∞ ; lim (x→−∞) eˣ = 0
+• (eᵘ⁽ˣ⁾)' = u'(x) · e^(u(x))
 
-Pour résoudre **eˣ = k** (k > 0) : x = **ln(k)**.
+🔹 **Limites de référence**
+• lim (x → +∞) eˣ = +∞
+• lim (x → −∞) eˣ = 0⁺
+• lim (x → +∞) eˣ / x = +∞ (croissance comparée)
+• lim (x → +∞) eˣ / xⁿ = +∞
+• lim (x → −∞) x·eˣ = 0
+• lim (h → 0) (eʰ − 1)/h = 1
 
-📘 Voir **chapitre 8 Fonction exponentielle**.`
+🔹 **Variations** : strictement croissante sur ℝ ; bijection ℝ → ]0 ; +∞[
+
+🔹 **Lien avec le ln** : eˣ = y ⇔ x = ln y (y > 0)
+
+🎯 **Astuce bac** : eˣ « écrase » tout — pour les croissances comparées, eˣ l'emporte sur xⁿ, qui l'emporte sur ln x.
+
+📘 **Chapitre 8 Fonction exponentielle**.`
   },
+
   {
-    keys: ['cosinus', 'sinus', 'tangente', 'trigo', 'radian', 'cercle trigo'],
-    answer: `**Cercle trigonométrique** : cercle de rayon 1, centré à l'origine.
-• cos² x + sin² x = 1
-• cos(−x) = cos x ; sin(−x) = −sin x
+    keys: ['cosinus', 'sinus', 'tan', 'trigo', 'radian', 'cercle trigo', 'cercle trigonométrique'],
+    answer: `**Trigonométrie**
+
+🔹 **Cercle trigonométrique** : cercle de rayon 1 centré en O.
+À un angle x (en radians) correspond le point **M(cos x ; sin x)**.
+
+🔹 **Identité fondamentale** : **cos²x + sin²x = 1**
+
+🔹 **Valeurs remarquables**
+| x | 0 | π/6 | π/4 | π/3 | π/2 |
+|---|---|---|---|---|---|
+| cos x | 1 | √3/2 | √2/2 | 1/2 | 0 |
+| sin x | 0 | 1/2 | √2/2 | √3/2 | 1 |
+| tan x | 0 | √3/3 | 1 | √3 | ∞ |
+
+🔹 **Symétries**
+• cos(−x) = cos x ; sin(−x) = −sin x (parité)
 • cos(π − x) = −cos x ; sin(π − x) = sin x
+• cos(π + x) = −cos x ; sin(π + x) = −sin x
 • cos(π/2 − x) = sin x ; sin(π/2 − x) = cos x
 
-Valeurs remarquables :
-| Angle | 0 | π/6 | π/4 | π/3 | π/2 |
-|---|---|---|---|---|---|
-| cos | 1 | √3/2 | √2/2 | 1/2 | 0 |
-| sin | 0 | 1/2 | √2/2 | √3/2 | 1 |
+🔹 **Périodicité** : cos et sin ont une période 2π ; tan a une période π.
 
-📘 Voir **chapitre 7 Cosinus et Sinus**.`
+🔹 **Dérivées**
+• (cos x)' = −sin x · (sin x)' = cos x
+• (tan x)' = 1 + tan² x = 1 / cos² x
+
+🔹 **Conversion** : 1 rad = 180/π ° ≈ 57,3° ; π rad = 180°.
+
+🎯 **Astuce bac** : retiens la **« main de trigo »** : sin pour le pouce de 0 à π/2 → √0/2, √1/2, √2/2, √3/2, √4/2.
+
+📘 **Chapitre 7 Cosinus et Sinus**.`
   },
+
   {
-    keys: ['produit scalaire', 'orthogonal', 'norme', 'vecteur'],
-    answer: `**Produit scalaire** dans un repère orthonormé :
-Si u(x ; y) et v(x' ; y') :
-• **u·v = xx' + yy'**
+    keys: ['produit scalaire', 'orthogonal', 'norme', 'vecteur', 'angle entre vecteurs', 'projeté'],
+    answer: `**Produit scalaire**
 
-Autres formules :
-• **u·v = ‖u‖·‖v‖·cos(û, v̂)**
-• ‖u‖² = u·u
-• u ⊥ v ⟺ **u·v = 0**
+🔹 **Définition (repère orthonormé)** : u(x ; y), v(x' ; y')
+**u · v = xx' + yy'**
 
-Identité utile : ‖u + v‖² = ‖u‖² + 2 u·v + ‖v‖².
+🔹 **Définition géométrique**
+**u · v = ‖u‖ · ‖v‖ · cos(û, v̂)**
 
-📘 Voir **chapitre 10 Produit scalaire**.`
+🔹 **Norme** : ‖u‖ = √(x² + y²) = √(u · u)
+
+🔹 **Orthogonalité**
+u ⊥ v ⟺ **u · v = 0**
+
+🔹 **Projection** de u sur v (vecteur unitaire ŵ = v/‖v‖) :
+u · v = ‖u_proj‖ · ‖v‖
+
+🔹 **Identités remarquables vectorielles**
+• ‖u + v‖² = ‖u‖² + 2 u·v + ‖v‖²
+• ‖u − v‖² = ‖u‖² − 2 u·v + ‖v‖²
+• (u + v)·(u − v) = ‖u‖² − ‖v‖²
+
+🔹 **Linéarité**
+• (u + w) · v = u·v + w·v
+• (k·u) · v = k · (u · v)
+• u · v = v · u
+
+🔹 **Théorème d'Al-Kashi** dans un triangle ABC :
+**a² = b² + c² − 2bc · cos(Â)**
+
+🎯 **Astuce bac** : si on te demande un angle dans un triangle, écris d'abord u · v dans la base canonique, puis identifie avec ‖u‖‖v‖cos θ.
+
+📘 **Chapitre 10 Produit scalaire**.`
   },
+
   {
-    keys: ['variable aléatoire', 'espérance', 'variance', 'binomiale', 'écart-type'],
-    answer: `Pour une variable aléatoire X discrète :
-• **E(X) = Σ xᵢ · P(X = xᵢ)** (espérance, "moyenne")
-• **V(X) = E(X²) − E(X)²** (variance)
-• **σ(X) = √V(X)** (écart-type)
+    keys: ['variable aléatoire', 'espérance', 'variance', 'binomiale', 'écart-type', 'loi binomiale', 'bernoulli'],
+    answer: `**Variable aléatoire**
 
-**Loi binomiale** B(n, p) :
-• P(X = k) = **C(n, k) · pᵏ · (1−p)ⁿ⁻ᵏ**
-• E(X) = **np**
-• V(X) = **np(1−p)**
+🔹 **Variable aléatoire discrète** X qui prend les valeurs x₁, x₂, …, xₙ.
+• **Loi de probabilité** : P(X = xᵢ) = pᵢ avec Σ pᵢ = 1.
+• **Espérance** : **E(X) = Σ xᵢ · pᵢ**
+• **Variance** : **V(X) = E(X²) − [E(X)]² = Σ pᵢ (xᵢ − E(X))²**
+• **Écart-type** : σ(X) = √V(X)
 
-📘 Voir **chapitre 9 Variable aléatoire**.`
+🔹 **Linéarité de l'espérance** : E(aX + b) = a·E(X) + b
+🔹 **Variance** : V(aX + b) = a² · V(X)
+
+🔹 **Loi de Bernoulli** B(p) : X = 1 avec proba p, X = 0 avec proba 1 − p.
+• E(X) = p · V(X) = p(1 − p)
+
+🔹 **Loi binomiale** B(n, p) — somme de n Bernoulli indépendantes
+• **P(X = k) = C(n, k) · pᵏ · (1−p)ⁿ⁻ᵏ** pour k = 0, 1, …, n
+• **E(X) = np**
+• **V(X) = np(1 − p)**
+• σ(X) = √(np(1−p))
+
+🔹 **Coefficient binomial** : C(n, k) = n! / (k! (n−k)!), aussi noté (n choose k).
+Relation : **C(n, k) = C(n−1, k−1) + C(n−1, k)** (Pascal)
+
+🎯 **Astuce bac** : pour P(X ≥ k) avec une binomiale, calcule plutôt P(X ≥ k) = 1 − P(X ≤ k−1).
+
+📘 **Chapitre 9 Variable aléatoire**.`
   },
+
   {
-    keys: ['géométrie', 'droite', 'pente', 'équation cartésienne', 'coordonnées'],
-    answer: `**Équation cartésienne d'une droite** : ax + by + c = 0, avec (a, b) vecteur **normal**.
-**Équation réduite** : y = mx + p (m = pente, p = ordonnée à l'origine).
+    keys: ['géométrie repérée', 'géométrie repere', 'vecteur', 'coordonnées', 'droite', 'pente', 'équation cartésienne', 'normal'],
+    answer: `**Géométrie repérée**
 
-Pente entre A(x_A, y_A) et B(x_B, y_B) : **m = (y_B − y_A)/(x_B − x_A)**.
+🔹 **Vecteur** AB(x_B − x_A ; y_B − y_A)
+🔹 **Milieu** I de [AB] : ( (x_A + x_B)/2 ; (y_A + y_B)/2 )
+🔹 **Distance** AB = ‖AB‖ = √((x_B − x_A)² + (y_B − y_A)²)
 
-Deux droites sont **parallèles** ⟺ même pente.
-**Perpendiculaires** ⟺ m·m' = −1 (si non verticales).
+🔹 **Vecteurs colinéaires** : u(x, y) et v(x', y') colinéaires ⟺ **xy' − x'y = 0**
+🔹 **Trois points alignés** : AB et AC colinéaires.
 
-📘 Voir **chapitre 4 Géométrie repérée**.`
+🔹 **Droite — équation cartésienne** : **ax + by + c = 0**
+• Vecteur directeur : (−b ; a)
+• Vecteur normal : (a ; b)
+
+🔹 **Droite — équation réduite** (si b ≠ 0) : **y = mx + p**
+• m = pente · p = ordonnée à l'origine
+
+🔹 **Pente entre A et B** : m = (y_B − y_A) / (x_B − x_A)
+
+🔹 **Droites parallèles** : mêmes coefficients directeurs (à un facteur près) ⟺ vecteurs directeurs colinéaires.
+🔹 **Droites perpendiculaires** : m · m' = −1 (forme réduite) ou vecteurs directeurs orthogonaux.
+
+🔹 **Équation d'une droite passant par A(x_A, y_A) avec vecteur directeur (α, β)**
+• Cartésienne : β(x − x_A) − α(y − y_A) = 0
+
+🎯 **Astuce bac** : retrouver une équation cartésienne — pars d'un point ET d'un vecteur directeur (ou normal), c'est immédiat.
+
+📘 **Chapitre 4 Géométrie repérée**.`
   },
-  {
-    keys: ['bac', 'annales', 'révision', 'controle', 'contrôle', 'sujet'],
-    answer: `Pour bien préparer un contrôle ou un bac blanc :
-1. **Refais des exercices d'annales** régulièrement (section « Exercices annales » du site).
-2. **Maîtrise les automatismes** : dériver, factoriser, résoudre du 2nd degré, calculer une probabilité.
-3. **Connais ton cours par cœur** : formules, hypothèses, conclusions.
-4. **Rédige clairement** : « D'après le théorème de … », « car … », « on en déduit que … ».
-5. **Vérifie tes résultats** : ordre de grandeur, cohérence, calcul inverse.
 
-Bon courage 💪`
+  {
+    keys: ['somme', 'binomial', 'pascal', 'newton', 'binôme'],
+    answer: `**Formule du binôme & coefficients**
+
+🔹 **Triangle de Pascal**
+Chaque coefficient = somme des deux au-dessus.
+C(n, k) = C(n−1, k−1) + C(n−1, k)
+
+🔹 **Formule du binôme de Newton** :
+**(a + b)ⁿ = Σ_{k=0}^{n} C(n, k) · a^(n−k) · b^k**
+
+Cas particuliers :
+• (a + b)² = a² + 2ab + b²
+• (a + b)³ = a³ + 3a²b + 3ab² + b³
+• (a − b)² = a² − 2ab + b²
+• (a + b)(a − b) = a² − b²
+
+🔹 **Sommes usuelles**
+• 1 + 2 + … + n = n(n+1)/2
+• 1² + 2² + … + n² = n(n+1)(2n+1)/6
+• 1³ + 2³ + … + n³ = (n(n+1)/2)²
+
+📘 Utile en **suites**, **proba** et **annales**.`
+  },
+
+  {
+    keys: ['limite', 'asymptote', 'forme indéterminée', 'croissance comparée'],
+    answer: `**Limites**
+
+🔹 **Limites usuelles**
+• 1/x → 0 quand x → ±∞
+• xⁿ → +∞ quand x → +∞ (n > 0)
+• eˣ → +∞ quand x → +∞ ; → 0⁺ quand x → −∞
+• ln x → +∞ quand x → +∞ ; → −∞ quand x → 0⁺
+
+🔹 **Croissances comparées** (x → +∞)
+• eˣ ≫ xⁿ ≫ ln x : eˣ l'emporte, ln la plus lente
+• lim eˣ/xⁿ = +∞ · lim xⁿ/ln x = +∞ · lim ln x / x = 0
+
+🔹 **Formes indéterminées** à lever
+• ∞ − ∞ : factoriser le terme dominant
+• 0/0 et ∞/∞ : factoriser, simplifier
+• 0 × ∞ : transformer en 0/0 ou ∞/∞
+• Suite : étudier le quotient et reconnaître croissance comparée
+
+🔹 **Asymptotes**
+• Verticale x = a : lim |f| → +∞ en a
+• Horizontale y = b : lim f → b en ±∞
+• Oblique y = ax + b : lim (f(x) − (ax+b)) = 0
+
+🎯 **Astuce bac** : pour x → +∞ d'un quotient polynomial, garde le degré dominant haut/bas.
+
+📘 **Chapitres 6 Étude de fonctions** et **8 Exponentielle**.`
+  },
+
+  {
+    keys: ['intégrale', 'integrale', 'primitive', 'aire'],
+    answer: `**Intégrales et primitives** (programme Première — initiation)
+
+🔹 Une **primitive** F de f vérifie F' = f.
+🔹 **Constante d'intégration** : si F est une primitive, toute primitive est F + k.
+
+🔹 **Primitives usuelles**
+| f(x) | F(x) |
+|---|---|
+| xⁿ (n ≠ −1) | xⁿ⁺¹/(n+1) |
+| 1/x | ln |x| |
+| eˣ | eˣ |
+| cos x | sin x |
+| sin x | −cos x |
+| 1/cos²x | tan x |
+
+🔹 **Intégrale** ∫_a^b f(x) dx = F(b) − F(a) (théorème fondamental)
+🔹 **Aire** sous la courbe (pour f ≥ 0) entre a et b : ∫_a^b f(x) dx
+
+📘 Approfondi en **Terminale**.`
+  },
+
+  {
+    keys: ['bac', 'annales', 'révision', 'controle', 'contrôle', 'sujet', 'préparer', 'preparer', 'astuce'],
+    answer: `**Préparer un contrôle ou un bac blanc**
+
+🔹 **Plan de révision (sur 2-4 semaines)**
+1. Reprends les **fiches** de chaque chapitre.
+2. Fais une grille des **formules clés** que tu écris à la main 3 fois par chapitre.
+3. Refais 2-3 **exercices par jour** ciblés sur tes points faibles.
+4. Termine par un **bac blanc** chronométré + correction.
+
+🔹 **Le jour J**
+• Lis le sujet **en entier** avant de commencer.
+• Fais d'abord les questions où tu te sens à l'aise.
+• Justifie : « D'après … », « car … », « donc … ».
+• Pas le temps ? Pose le théorème, esquisse la méthode, écris la formule — tu grappilles des points.
+
+🔹 **Pièges fréquents**
+• Oublier le **domaine de définition** (ln, dénominateurs)
+• Confondre **conditionnelle** et **intersection** en proba
+• Mal poser la **récurrence** (initialisation + hérédité explicites)
+• Oublier le **vecteur directeur** vs **normal** d'une droite
+
+🔹 **Notation propre**
+• Encadre tes **résultats finaux**
+• Numéro de question bien visible
+• Schémas / arbres / tableaux quand pertinent
+
+🎯 Le bac récompense la **rigueur**, pas la complexité. Une démonstration courte mais juste vaut une longue mais boiteuse.
+
+📘 Voir **« Exercices annales »** sur le site.`
+  },
+
+  {
+    keys: ['leçon', 'lecon', 'résumé', 'resume', 'rappel', 'rappels'],
+    answer: `**Leçons rapides — clique sur un chapitre pour le menu détaillé**
+
+📖 **Chapitre 1** : Second degré → discriminant Δ = b²−4ac, racines, sommet, forme canonique.
+📖 **Chapitre 2** : Suites → arithmétique uₙ = u₀ + nr, géométrique uₙ = u₀qⁿ, récurrence.
+📖 **Chapitre 3** : Dérivation → dérivées usuelles, règles produit/quotient/composée.
+📖 **Chapitre 4** : Géométrie repérée → vecteurs, droites (cartésienne / réduite), pente.
+📖 **Chapitre 5** : Probabilité conditionnelle → arbres, formule de Bayes, indépendance.
+📖 **Chapitre 6** : Étude de fonctions → tableau de variations, extrema, asymptotes.
+📖 **Chapitre 7** : Cosinus & Sinus → cercle trigo, identité cos² + sin² = 1, valeurs remarquables.
+📖 **Chapitre 8** : Fonction exponentielle → propriétés, dérivée, croissances comparées.
+📖 **Chapitre 9** : Variable aléatoire → loi, E(X), V(X), σ(X), binomiale.
+📖 **Chapitre 10** : Produit scalaire → u·v = xx'+yy', orthogonalité, identités.
+
+Demande un de ces sujets pour avoir le **formulaire complet** et les **astuces bac** correspondants.`
   },
 ];
 
@@ -287,6 +673,114 @@ function localAnswer(q) {
   }
   return null;
 }
+
+// ===================================================================
+// Gemini hand-off — prompt designed to make Gemini an effective tutor
+// for this specific site & curriculum. The user clicks "Continuer avec
+// Gemini" which copies this prompt to the clipboard then opens
+// gemini.google.com. They paste it as the first message.
+// ===================================================================
+const GEMINI_SYSTEM_PROMPT = `Tu es désormais "M. PELLETIER", un professeur de mathématiques chaleureux et expert, inspiré par Albert Einstein. Tu accompagnes un élève français en Première Spécialité Mathématiques (programme français du lycée).
+
+OBJECTIF
+- Aider l'élève à comprendre son cours, à corriger ses exercices, à se préparer au bac.
+- Si l'élève colle un énoncé d'exercice : résous-le ÉTAPE PAR ÉTAPE, en justifiant chaque ligne.
+- Si l'élève demande une explication : donne une mini-leçon claire, structurée, avec des exemples.
+- Si l'élève montre sa correction : valide ou corrige avec bienveillance ; explique POURQUOI.
+
+STYLE OBLIGATOIRE
+- Tutoie l'élève.
+- Réponds toujours en français.
+- Pas de bavardage : va à l'essentiel.
+- Structure : listes, étapes numérotées, encadrés "Astuce" si pertinent.
+- Écris les formules en notation simple lisible :
+  • "f(x) = ax² + bx + c"
+  • "Δ = b² − 4ac"
+  • "x = (−b ± √Δ) / (2a)"
+  • "lim (x→+∞) eˣ/x = +∞"
+  • "P(B|A) = P(A∩B)/P(A)"
+  Pas de LaTeX brut, pas de Markdown lourd.
+
+PROGRAMME DE PREMIÈRE SPÉCIALITÉ MATHS (à connaître par cœur)
+
+1) SECOND DEGRÉ
+- Δ = b² − 4ac · racines (−b ± √Δ)/(2a)
+- Forme canonique a(x − α)² + β · sommet (α, β) avec α = −b/(2a)
+- Signe : du signe de a hors des racines (si Δ > 0)
+- Viète : x₁ + x₂ = −b/a · x₁·x₂ = c/a
+
+2) SUITES
+- Arithmétique : uₙ = u₀ + nr · Σ = (n+1)(u₀ + uₙ)/2
+- Géométrique : uₙ = u₀·qⁿ · Σ = u₀(1 − qⁿ⁺¹)/(1 − q) si q ≠ 1
+- Récurrence : initialisation + hérédité
+- Limites : selon r ou q
+
+3) DÉRIVATION
+- (xⁿ)' = n·xⁿ⁻¹ · (√x)' = 1/(2√x) · (1/x)' = −1/x²
+- (eˣ)' = eˣ · (ln x)' = 1/x · (sin x)' = cos x · (cos x)' = −sin x
+- (uv)' = u'v + uv' · (u/v)' = (u'v − uv')/v² · (u∘v)' = u'(v)·v'
+- Tangente en a : y = f'(a)(x − a) + f(a)
+
+4) GÉOMÉTRIE REPÉRÉE
+- AB(x_B − x_A ; y_B − y_A) · ‖AB‖ = √(Δx² + Δy²)
+- Colinéarité : xy' − x'y = 0
+- Droite : ax + by + c = 0 (normal (a, b), directeur (−b, a))
+- Équation réduite : y = mx + p
+- Parallèles ⟺ même m · Perpendiculaires ⟺ m·m' = −1
+
+5) PROBABILITÉ CONDITIONNELLE
+- P(B|A) = P(A∩B)/P(A)
+- Probabilités totales : P(B) = Σ P(Aᵢ)·P(B|Aᵢ)
+- Bayes : P(A|B) = P(B|A)·P(A)/P(B)
+- Indépendance : P(A∩B) = P(A)·P(B)
+- Arbres pondérés : branches partantes somment à 1.
+
+6) ÉTUDE DE FONCTIONS PAR LA DÉRIVATION
+- f'(x) > 0 ⇒ f croissante · f'(x) < 0 ⇒ f décroissante
+- Extremum local : f'(x₀) = 0 + changement de signe
+- Convexité : f''(x) > 0 ⇒ convexe · point d'inflexion : f'' change de signe
+- Théorème des valeurs intermédiaires + monotonie
+
+7) COSINUS ET SINUS
+- cos² + sin² = 1
+- cos(−x) = cos x · sin(−x) = −sin x
+- cos(π − x) = −cos x · sin(π − x) = sin x
+- cos(π/2 − x) = sin x · sin(π/2 − x) = cos x
+- Valeurs : 0, π/6, π/4, π/3, π/2 → cos 1, √3/2, √2/2, 1/2, 0 ; sin 0, 1/2, √2/2, √3/2, 1
+- Dérivées : (cos x)' = −sin x · (sin x)' = cos x
+- Conversion : 1 rad = 180/π °
+
+8) FONCTION EXPONENTIELLE
+- e⁰ = 1 · e^(a+b) = eᵃ·eᵇ · (eᵃ)ⁿ = e^(na) · e^(−a) = 1/eᵃ
+- eˣ > 0 pour tout x
+- (eˣ)' = eˣ · (e^u)' = u'·e^u
+- lim eˣ = +∞ en +∞ · lim eˣ = 0⁺ en −∞
+- Croissances comparées : eˣ ≫ xⁿ ≫ ln x
+
+9) VARIABLE ALÉATOIRE
+- E(X) = Σ xᵢ·P(X = xᵢ)
+- V(X) = E(X²) − E(X)² · σ = √V
+- Linéarité : E(aX + b) = aE(X) + b · V(aX + b) = a²V(X)
+- Binomiale B(n, p) : P(X = k) = C(n, k)·pᵏ(1−p)ⁿ⁻ᵏ
+- E(B(n, p)) = np · V(B(n, p)) = np(1 − p)
+- Coefficients : C(n, k) = n!/(k!(n−k)!) · Pascal : C(n, k) = C(n−1, k−1) + C(n−1, k)
+
+10) PRODUIT SCALAIRE
+- u·v = xx' + yy' = ‖u‖‖v‖cos θ
+- ‖u‖² = u·u
+- u ⊥ v ⇔ u·v = 0
+- ‖u + v‖² = ‖u‖² + 2u·v + ‖v‖²
+- Al-Kashi : a² = b² + c² − 2bc cos Â
+
+PIÈGES TYPIQUES BAC
+- Oublier le domaine de définition (ln, racine, dénominateur)
+- Confondre P(A∩B) et P(B|A)
+- Mal poser la récurrence (initialisation + hérédité explicitées)
+- Pour les limites, mélanger vecteur directeur et normal
+- Oublier de vérifier les hypothèses d'un théorème (continuité, monotonie)
+
+DEMANDE DE L'ÉLÈVE
+[Ici l'élève va te poser sa question / coller son exercice]`;
 
 // ===================================================================
 // API key storage (Anthropic)
@@ -407,6 +901,12 @@ export function mountChatbot() {
       </button>
     </form>
     <div class="pp-suggestions" id="ppSuggestions"></div>
+    <div class="pp-gemini-row">
+      <button class="pp-gemini" id="ppGemini" type="button" title="Copier le prompt M. PELLETIER et ouvrir Gemini">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14.5 9.5 22 12 14.5 14.5 12 22 9.5 14.5 2 12 9.5 9.5 Z" fill="currentColor" opacity=".95"/></svg>
+        <span>Continuer avec Gemini</span>
+      </button>
+    </div>
   `;
   document.body.appendChild(panel);
 
@@ -417,6 +917,7 @@ export function mountChatbot() {
   panel.querySelector('#ppKeySave').addEventListener('click', saveKeyFromInput);
   panel.querySelector('#ppKeyClear').addEventListener('click', clearKey);
   panel.querySelector('#ppForm').addEventListener('submit', onSubmit);
+  panel.querySelector('#ppGemini').addEventListener('click', handoffGemini);
   const input = panel.querySelector('#ppInput');
   input.addEventListener('input', autoGrow);
   input.addEventListener('keydown', (e) => {
@@ -429,8 +930,12 @@ export function mountChatbot() {
     hist.forEach(m => appendBubble(m.role, m.content, { skipHistory: true }));
   } else {
     appendBubble('assistant', `Bonjour ! Je suis **M. PELLETIER** 👋
-Je suis là pour t'aider à comprendre tes cours, corriger tes exercices, ou réviser pour un contrôle.
-Pose-moi n'importe quelle question de maths ; tu peux aussi cliquer sur les suggestions ci-dessous.`,
+Je peux t'aider sur tout le programme de **Première Spécialité Maths** :
+• Donne-moi le nom d'un chapitre pour avoir son **formulaire complet** et les astuces bac.
+• Demande "**toutes les formules**" pour le récap général.
+• Pose ta question ou clique sur une suggestion.
+
+🚀 Pour des **exercices corrigés en détail**, clique sur **« Continuer avec Gemini »** en bas — je te prépare un prompt à coller directement.`,
       { skipHistory: true });
   }
 
@@ -568,6 +1073,34 @@ function renderSuggestions() {
     i.focus();
     document.getElementById('ppForm').requestSubmit();
   }));
+}
+
+async function handoffGemini() {
+  // Combine the persona prompt with the last user question if any
+  const hist = loadHistory();
+  const lastUser = [...hist].reverse().find(m => m.role === 'user')?.content
+                || document.getElementById('ppInput')?.value?.trim()
+                || '';
+  let prompt = GEMINI_SYSTEM_PROMPT;
+  if (lastUser) {
+    prompt = prompt.replace('[Ici l\'élève va te poser sa question / coller son exercice]', lastUser);
+  }
+  try {
+    await navigator.clipboard.writeText(prompt);
+    toast2('Prompt copié — colle-le dans Gemini');
+  } catch {
+    // Fallback: create a hidden textarea and select it
+    const ta = document.createElement('textarea');
+    ta.value = prompt;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); toast2('Prompt copié — colle-le dans Gemini'); }
+    catch { toast2('Impossible de copier — sélectionne et copie manuellement'); }
+    document.body.removeChild(ta);
+  }
+  // Open Gemini in a new tab after a short delay so the toast is visible
+  setTimeout(() => window.open('https://gemini.google.com/app', '_blank', 'noopener'), 400);
 }
 
 function toast2(msg) {

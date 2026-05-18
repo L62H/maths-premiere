@@ -651,7 +651,9 @@ function itemCard(it, opts = {}) {
   </${tag}>`;
 }
 
-// Lazy-render the first page of each PDF as a thumbnail using IntersectionObserver
+// Lazy-render a meaningful page of each PDF as a thumbnail using IntersectionObserver.
+// We skip the cover/title slide (which is often just a "ruled paper" template) by
+// preferring page 2 when available — gives a more representative preview.
 function renderItemThumbs(root) {
   const previews = root.querySelectorAll('.item-preview[data-pdf]');
   if (!previews.length) return;
@@ -663,7 +665,9 @@ function renderItemThumbs(root) {
       if (!url) continue;
       try {
         const doc = await pdfjsLib.getDocument(url).promise;
-        const page = await doc.getPage(1);
+        // Pick a representative page: page 2 if it exists, else page 1
+        const pageNum = doc.numPages >= 2 ? 2 : 1;
+        const page = await doc.getPage(pageNum);
         const vp = page.getViewport({ scale: 1 });
         const targetW = e.target.clientWidth || 320;
         const scale = (targetW * (window.devicePixelRatio || 1)) / vp.width;
@@ -677,10 +681,8 @@ function renderItemThumbs(root) {
         canvas.style.objectPosition = 'top';
         const ctx = canvas.getContext('2d');
         await page.render({ canvasContext: ctx, viewport: vp2 }).promise;
-        // remove placeholder svg, badge keeps
         e.target.querySelector('.placeholder')?.remove();
         e.target.prepend(canvas);
-        // also update page count in card
         const card = e.target.closest('.item-card');
         const pc = card?.querySelector('.pages-count');
         if (pc) pc.textContent = doc.numPages + ' page' + (doc.numPages > 1 ? 's' : '');

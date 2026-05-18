@@ -1329,6 +1329,31 @@ a.right:hover { color: var(--gold); }
 }
 .pp-chip:hover { border-color: var(--gold-line); color: var(--gold); background: var(--gold-soft); }
 
+.pp-gemini-row {
+  flex: none;
+  padding: 0 12px 14px;
+  display: flex; justify-content: center;
+}
+.pp-gemini {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #1a73e8 0%, #8430ce 50%, #d93787 100%);
+  color: #fff;
+  border: 0;
+  border-radius: 999px;
+  font-size: 13.5px; font-weight: 600;
+  letter-spacing: .01em;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(132, 48, 206, .25);
+  transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+.pp-gemini:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(132, 48, 206, .35);
+}
+.pp-gemini:active { transform: scale(.96); }
+.pp-gemini svg { width: 18px; height: 18px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
+
 @media (max-width: 640px) {
   .pelletier-fab { right: 14px; bottom: 14px; width: 56px; height: 56px; }
   .pelletier-fab .fab-avatar { width: 48px; height: 48px; }
