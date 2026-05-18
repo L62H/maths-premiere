@@ -144,7 +144,6 @@ function bindUI() {
       else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomBy(-0.15); }
       else if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
       else if (e.key.toLowerCase() === 't') { e.preventDefault(); toggleThumbs(); }
-      else if (e.key === 'Delete') { e.preventDefault(); deleteCurrentSlide(); }
       else if (e.key === 'Escape') { e.preventDefault(); closeViewer(); }
     }
   });
@@ -166,7 +165,6 @@ function bindUI() {
   document.getElementById('vZoomIn').addEventListener('click', () => zoomBy(0.15));
   document.getElementById('vZoomOut').addEventListener('click', () => zoomBy(-0.15));
   document.getElementById('vFav').addEventListener('click', toggleFavCurrent);
-  document.getElementById('vDelete').addEventListener('click', deleteCurrentSlide);
   document.getElementById('vFs').addEventListener('click', toggleFullscreen);
   document.getElementById('vExitImmersive').addEventListener('click', () => {
     document.getElementById('viewer').classList.remove('immersive');
