@@ -741,18 +741,11 @@ a.right:hover { color: var(--gold); }
 
 /* ===== Viewer ===== */
 .viewer {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  /* svh = smallest viewport height (always above Safari's UI), so the slide
-     bottom is never hidden behind the address/nav bar even mid-transition. */
-  height: 100vh;
-  height: 100svh;
+  position: fixed; inset: 0;
   background: var(--bg);
   z-index: 100;
   display: flex; flex-direction: column;
   animation: viewerIn .28s var(--ease);
-  /* Extra belt for older iOS where svh isn't supported yet. */
-  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 @keyframes viewerIn {
   from { opacity: 0; transform: translateY(6px) scale(.99); }
