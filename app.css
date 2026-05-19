@@ -1564,9 +1564,11 @@ body.pp-open .pelletier-fab { display: none; }
   .vsep { display: none; }
   .viewer-thumbs { display: none; }
   .slide-slot { padding: 6px 4px; }
-  .page-counter { padding: 0 4px; height: 30px; }
-  .page-counter input { width: 32px; font-size: 12px; }
-  .page-counter #vPages { font-size: 12px; }
+  .page-counter { padding: 0 4px; height: 30px; gap: 4px; }
+  /* Wider input so 2- or 3-digit page numbers don't get clipped at the
+     mandatory 16px font-size (anti-iOS-zoom rule below). */
+  .page-counter input { width: 44px; }
+  .page-counter #vPages { font-size: 13px; }
   .icon-btn { width: 34px; height: 34px; }
   .icon-btn svg { width: 18px; height: 18px; }
   /* keep just the essentials visible: back, prev/next, page#, thumbs toggle, fullscreen */
