@@ -741,7 +741,12 @@ a.right:hover { color: var(--gold); }
 
 /* ===== Viewer ===== */
 .viewer {
-  position: fixed; inset: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  /* Respect iOS Safari's dynamic UI (nav bar) so the bottom of the slide
+     isn't hidden behind the browser chrome. */
+  height: 100vh;
+  height: 100dvh;
   background: var(--bg);
   z-index: 100;
   display: flex; flex-direction: column;

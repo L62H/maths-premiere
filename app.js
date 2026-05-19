@@ -35,6 +35,14 @@ const STORE = {
   ZOOM:   'mp1.zoom',
 };
 
+// Mobile-aware caps to keep canvas memory under control.
+// iPhone has dpr = 3 → a 16:9 slide at fit-to-screen × 3 dpr × 66 slides
+// would push way over what iOS Safari tolerates. Cap aggressively.
+const IS_MOBILE = window.matchMedia('(max-width: 640px)').matches;
+const DPR_CAP   = IS_MOBILE ? 1.5 : 2.5;
+const ZOOM_MAX  = IS_MOBILE ? 2   : 3;
+const KEEP_NEAR = 2; // how many slides on each side of current to keep fully rendered
+
 const CATEGORIES = {
   cours:      { label: 'Cours',       icon: 'M5 4h11l3 3v13H5z|M16 4v3h3' },
   diaporama:  { label: 'Diaporama',   icon: 'M4 5h16v11H4z|M2 19h20|M10 19v3M14 19v3' },
@@ -50,13 +58,14 @@ init();
 
 async function init() {
   // One-shot cleanup: the per-user "hidden slide" feature has been removed
-  // and those deletions are now permanent in the PDFs. Remove any stale
-  // mp1.hidden:* entries so the new (smaller) PDFs aren't accidentally
-  // re-filtered against old indices.
+  // and those deletions are now permanent in the PDFs. Also wipe any stale
+  // zoom value (old viewer used to persist a scale which now reopens the
+  // viewer in a half-zoomed state).
   try {
     for (const k of Object.keys(localStorage)) {
       if (k.startsWith('mp1.hidden:')) localStorage.removeItem(k);
     }
+    localStorage.removeItem(STORE.ZOOM);
   } catch {}
 
   applyTheme(localStorage.getItem(STORE.THEME) || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
@@ -1016,6 +1025,11 @@ function closeViewer(silent = false) {
   if (viewer.hidden) return;
   viewer.hidden = true;
   viewer.setAttribute('aria-hidden', 'true');
+  // Free all heavy resources tied to the open PDF
+  if (state.ioRender)  { state.ioRender.disconnect();  state.ioRender = null; }
+  if (state.ioActive)  { state.ioActive.disconnect();  state.ioActive = null; }
+  clearTimeout(_gcTimer);
+  clearTimeout(_zoomTimer);
   if (state.pdf) { try { state.pdf.cleanup(); state.pdf.destroy(); } catch {} }
   state.pdf = null;
   state.currentItem = null;
@@ -1064,18 +1078,22 @@ function renderThumbsAll() {
 }
 
 function observePages() {
+  // Disconnect previous observers (memory leak prevention if openViewer
+  // is called multiple times in the same session).
+  if (state.ioRender)  state.ioRender.disconnect();
+  if (state.ioActive)  state.ioActive.disconnect();
+
   const scroll = document.getElementById('vScroll');
-  // Render-trigger observer with horizontal margin so adjacent slides preload
-  const ioRender = new IntersectionObserver(async (entries) => {
+  state.ioRender = new IntersectionObserver(async (entries) => {
     for (const e of entries) {
       if (e.isIntersecting) {
         const p = parseInt(e.target.dataset.page, 10);
         renderPage(p);
       }
     }
-  }, { root: scroll, rootMargin: '0px 200% 0px 200%', threshold: 0.01 });
-  // Active-page detection: which slot is most visible horizontally
-  const ioActive = new IntersectionObserver((entries) => {
+  }, { root: scroll, rootMargin: '0px 100% 0px 100%', threshold: 0.01 });
+
+  state.ioActive = new IntersectionObserver((entries) => {
     if (state.suppressActiveUpdate && Date.now() < state.suppressActiveUpdate) return;
     let best = null;
     for (const e of entries) {
@@ -1088,14 +1106,39 @@ function observePages() {
         state.page = p;
         updatePageInput();
         updateActiveThumb();
+        // Free far canvases to keep memory in check on mobile
+        scheduleCanvasGC();
       }
     }
   }, { root: scroll, threshold: [0, 0.5, 0.8, 1] });
-  // Observe SLOTS (the canvases now live inside slots)
   document.querySelectorAll('.slide-slot').forEach(slot => {
-    ioRender.observe(slot);
-    ioActive.observe(slot);
+    state.ioRender.observe(slot);
+    state.ioActive.observe(slot);
   });
+}
+
+// Drop the pixel buffer of pages that are far from the current view.
+// They'll re-render next time the user scrolls back to them. This is the
+// single most important change for long presentations on iPhone — without
+// it, every visited slide stayed in memory and the page eventually crashed.
+let _gcTimer = null;
+function scheduleCanvasGC() {
+  clearTimeout(_gcTimer);
+  _gcTimer = setTimeout(() => {
+    const curr = state.page;
+    const FAR = KEEP_NEAR + 2; // beyond this, free the buffer
+    for (const [p, c] of state.pageCanvases) {
+      if (Math.abs(p - curr) > FAR && c.width > 300) {
+        // Reset to the tiny placeholder so the browser can free the buffer.
+        c.width = 300;
+        c.height = 150;
+        c.style.width = '';
+        c.style.height = '';
+        c.style.aspectRatio = '1 / 0.5625'; // 16:9 placeholder
+        c.dataset.rendered = '';
+      }
+    }
+  }, 600);
 }
 
 async function renderPage(p) {
@@ -1123,7 +1166,7 @@ async function renderPage(p) {
       scale = fitScale * state.zoomScale;
     }
     if (!isFinite(scale) || scale <= 0) scale = 1;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
     const vp = page.getViewport({ scale: scale * dpr });
     canvas.width = vp.width;
     canvas.height = vp.height;
@@ -1176,19 +1219,39 @@ function updateActiveThumb() {
   if (a) a.scrollIntoView({ block: 'nearest' });
 }
 
+// Re-render only what's actually visible (current + a couple of neighbours).
+// Pages further away are re-rendered lazily by the IntersectionObserver when
+// the user scrolls back to them. This was the main source of crash on mobile
+// when zooming on long presentations (50+ slides x huge canvases at once).
+let _zoomTimer = null;
+function applyZoomRender() {
+  // The slot's class controls overflow / scroll behaviour — apply it
+  // immediately to ALL slots so the UI feels responsive. The expensive
+  // canvas re-render is debounced + scoped to near-by slots.
+  const isZoomed = state.zoomMode !== 'fit';
+  document.querySelectorAll('.slide-slot').forEach(s => s.classList.toggle('zoomed', isZoomed));
+  clearTimeout(_zoomTimer);
+  _zoomTimer = setTimeout(() => {
+    const curr = state.page;
+    for (let p = curr - KEEP_NEAR; p <= curr + KEEP_NEAR; p++) {
+      const c = state.pageCanvases.get(p);
+      if (c) c.dataset.rendered = '';
+    }
+    renderPage(curr);
+  }, 80);
+}
+
 function zoomBy(delta) {
-  // First click out of fit-mode initialises scale at 1× (= fit) so the next
-  // step is clearly +/− than what the user was looking at.
   if (state.zoomMode === 'fit') state.zoomScale = 1;
   state.zoomMode = 'scale';
-  state.zoomScale = Math.max(0.5, Math.min(4, state.zoomScale + delta));
-  // Snap back to fit when within 5% of 1× so users can return there easily
-  if (Math.abs(state.zoomScale - 1) < 0.05) {
+  state.zoomScale = Math.max(1, Math.min(ZOOM_MAX, state.zoomScale + delta));
+  if (state.zoomScale <= 1.01) {
     state.zoomMode = 'fit';
+    state.zoomScale = 1;
   }
-  document.getElementById('vZoomVal').textContent = Math.round(state.zoomScale * 100) + '%';
-  localStorage.setItem(STORE.ZOOM, state.zoomScale);
-  for (const [p, c] of state.pageCanvases) { c.dataset.rendered = ''; renderPage(p); }
+  document.getElementById('vZoomVal').textContent =
+    state.zoomMode === 'fit' ? 'Ajusté' : Math.round(state.zoomScale * 100) + '%';
+  applyZoomRender();
 }
 
 function setZoom(mode) {
@@ -1196,11 +1259,9 @@ function setZoom(mode) {
   if (mode === 'fit') {
     state.zoomScale = 1;
     document.getElementById('vZoomVal').textContent = 'Ajusté';
-    localStorage.setItem(STORE.ZOOM, 'fit');
+    document.querySelectorAll('.slide-slot').forEach(s => s.classList.remove('zoomed'));
   }
-  // Drop the .zoomed class everywhere — slots fit on next render
-  document.querySelectorAll('.slide-slot').forEach(s => s.classList.remove('zoomed'));
-  for (const [p, c] of state.pageCanvases) { c.dataset.rendered = ''; renderPage(p); }
+  applyZoomRender();
 }
 
 // Trivial helpers replacing the removed "hidden slide" feature (server-side
