@@ -1275,20 +1275,37 @@ function nextVisiblePage(from, dir) {
 
 function toggleFullscreen() {
   const v = document.getElementById('viewer');
+  const isMobile = window.matchMedia('(max-width: 980px)').matches;
   const supportsFs = !!(v.requestFullscreen || v.webkitRequestFullscreen);
-  if (supportsFs && !document.fullscreenElement && !document.webkitFullscreenElement) {
+  // On mobile, iOS Safari does NOT support requestFullscreen on arbitrary
+  // elements — go straight to CSS-immersive mode so we don't waste a tap.
+  // On desktop, prefer the real Fullscreen API.
+  if (!isMobile && supportsFs && !document.fullscreenElement && !document.webkitFullscreenElement) {
     (v.requestFullscreen || v.webkitRequestFullscreen).call(v).catch(() => {
-      // Native API rejected (typical on iOS): fall back to CSS immersion mode
       v.classList.toggle('immersive');
       updateFsIcon();
+      reRenderVisibleSoon();
     });
   } else if (document.fullscreenElement || document.webkitFullscreenElement) {
     (document.exitFullscreen || document.webkitExitFullscreen).call(document);
   } else {
-    // No native API at all → CSS-based immersion
     v.classList.toggle('immersive');
     updateFsIcon();
+    reRenderVisibleSoon();
   }
+}
+
+// Mark current + adjacent canvases as stale and re-render — used after the
+// viewer's available area changes (immersive on/off, orientation, …).
+function reRenderVisibleSoon() {
+  setTimeout(() => {
+    const curr = state.page;
+    for (let p = curr - KEEP_NEAR; p <= curr + KEEP_NEAR; p++) {
+      const c = state.pageCanvases.get(p);
+      if (c) c.dataset.rendered = '';
+    }
+    renderPage(curr);
+  }, 60);
 }
 
 function updateFsIcon() {

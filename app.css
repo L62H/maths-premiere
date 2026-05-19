@@ -741,7 +741,13 @@ a.right:hover { color: var(--gold); }
 
 /* ===== Viewer ===== */
 .viewer {
-  position: fixed; inset: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  /* Dynamic viewport: stops at the top of Safari's bottom nav bar
+     (in portrait) and at the screen bottom (in landscape, where Safari
+     has only a thin home indicator). */
+  height: 100vh;
+  height: 100dvh;
   background: var(--bg);
   z-index: 100;
   display: flex; flex-direction: column;
@@ -981,22 +987,31 @@ a.right:hover { color: var(--gold); }
 .slot-nav svg { width: 32px; height: 32px; color: #fff; filter: drop-shadow(0 1px 6px rgba(0,0,0,.6)); }
 @media (hover: none) { .slot-nav { display: none; } }
 
-/* Immersive CSS fullscreen (iOS fallback) */
+/* Immersive (PowerPoint-style) full-screen mode — the slide takes the entire
+   available viewport, toolbar hidden, just the slide + a discreet close
+   button. Works on iOS Safari where the native Fullscreen API is not
+   supported on arbitrary elements. */
 .exit-immersive {
-  position: fixed; top: 16px; right: 16px;
+  position: fixed; top: 14px; right: 14px;
   width: 44px; height: 44px;
   display: none;
   place-items: center;
-  background: rgba(0,0,0,.6); color: #fff;
+  background: rgba(0,0,0,.55); color: #fff;
+  border: 0;
   border-radius: 50%;
-  z-index: 999;
+  z-index: 9999;
   cursor: pointer;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
 }
 .viewer.immersive .exit-immersive { display: grid; }
 .viewer.immersive .viewer-bar { display: none; }
-.viewer.immersive .viewer-body { height: 100vh; height: 100dvh; }
+.viewer.immersive .viewer-body { padding: 0 !important; }
 .viewer.immersive .slide-slot { padding: 0; }
+/* In immersive mode, drop the dark letterbox padding so the slide truly
+   reaches the screen edges (limited only by the slide's own 16:9 aspect). */
+.viewer.immersive .viewer-scroll { background: #000; }
 
 /* Remove button on favorite cards */
 .card-remove {
