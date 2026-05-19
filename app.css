@@ -842,6 +842,11 @@ a.right:hover { color: var(--gold); }
 .viewer-body {
   flex: 1; display: flex; min-height: 0;
   position: relative;
+  /* Respect iOS safe-area on the CONTENT only — the .viewer outer box keeps
+     `inset: 0` so its background still fills the screen edge-to-edge (no gap
+     showing the home page behind), while the slide is constrained above the
+     home indicator and Safari nav bar. */
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 .viewer-thumbs {
   width: 168px;
