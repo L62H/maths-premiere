@@ -743,15 +743,21 @@ a.right:hover { color: var(--gold); }
 .viewer {
   position: fixed;
   top: 0; left: 0; right: 0;
-  /* Dynamic viewport: stops at the top of Safari's bottom nav bar
-     (in portrait) and at the screen bottom (in landscape, where Safari
-     has only a thin home indicator). */
   height: 100vh;
   height: 100dvh;
   background: var(--bg);
   z-index: 100;
   display: flex; flex-direction: column;
   animation: viewerIn .28s var(--ease);
+  /* All content (toolbar + slide) is held above the iOS home indicator.
+     Padding is on the OUTER box so it survives every inner mode (including
+     `viewer.immersive`). */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+/* Landscape on iPhone reports a tiny safe-area (≈ 21 px) but the home
+   indicator is bigger than that visually — bump it to at least 24 px. */
+@media (orientation: landscape) and (max-width: 980px) {
+  .viewer { padding-bottom: max(env(safe-area-inset-bottom, 24px), 24px); }
 }
 @keyframes viewerIn {
   from { opacity: 0; transform: translateY(6px) scale(.99); }
@@ -848,11 +854,8 @@ a.right:hover { color: var(--gold); }
 .viewer-body {
   flex: 1; display: flex; min-height: 0;
   position: relative;
-  /* Respect iOS safe-area on the CONTENT only — the .viewer outer box keeps
-     `inset: 0` so its background still fills the screen edge-to-edge (no gap
-     showing the home page behind), while the slide is constrained above the
-     home indicator and Safari nav bar. */
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  /* Safe-area padding lives on `.viewer` (outer) — see above. Body stays
+     flush so the slide can use the full available height. */
 }
 .viewer-thumbs {
   width: 168px;
