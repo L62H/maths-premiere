@@ -1181,6 +1181,222 @@ a.right:hover { color: var(--gold); }
 }
 
 /* ============================================================
+   Authentification — modal de connexion / création de compte
+   ============================================================ */
+#authBtn { color: var(--text-2); }
+#authBtn.logged {
+  width: auto;
+  padding: 0 12px;
+  gap: 6px;
+}
+.auth-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600;
+  color: var(--gold);
+}
+.auth-chip svg { width: 16px; height: 16px; }
+.auth-name {
+  max-width: 12ch;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+@media (max-width: 520px) {
+  #authBtn.logged .auth-name { display: none; }
+  #authBtn.logged { width: 38px; padding: 0; justify-content: center; }
+}
+
+.auth-modal {
+  position: fixed; inset: 0;
+  z-index: 9990;
+  opacity: 0;
+  transition: opacity var(--base) var(--ease);
+  display: grid; place-items: center;
+  padding: 16px;
+  padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px);
+}
+.auth-modal.open { opacity: 1; }
+.auth-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(10, 10, 14, .55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 100%;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-3), 0 0 0 1px rgba(255,255,255,.02);
+  padding: 28px 24px 22px;
+  transform: translateY(16px) scale(.98);
+  transition: transform var(--base) var(--ease);
+}
+.auth-modal.open .auth-card { transform: none; }
+[data-theme="dark"] .auth-card { background: var(--surface-2); }
+
+.auth-close {
+  position: absolute; top: 10px; right: 10px;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  background: transparent; border: 0; color: var(--text-3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.auth-close:hover { background: var(--surface-2); color: var(--text); }
+.auth-close svg { width: 18px; height: 18px; }
+
+.auth-head { text-align: center; margin-bottom: 18px; }
+.auth-mark {
+  width: 46px; height: 46px; margin: 0 auto 12px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--gold-2), var(--gold));
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -.02em;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px var(--gold-soft);
+}
+.auth-title {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 26px; font-weight: 500;
+  letter-spacing: -.01em;
+}
+.auth-sub {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 13.5px;
+}
+
+.auth-tabs {
+  display: flex; gap: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.auth-tab {
+  flex: 1;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0; cursor: pointer;
+  border-radius: 8px;
+  color: var(--text-2);
+  font: inherit; font-size: 13.5px; font-weight: 500;
+  transition: all var(--fast) var(--ease);
+}
+.auth-tab:hover { color: var(--text); }
+.auth-tab.active {
+  background: var(--surface);
+  color: var(--gold);
+  box-shadow: var(--shadow-1);
+}
+[data-theme="dark"] .auth-tab.active { background: var(--surface-3); }
+
+.auth-form { display: flex; flex-direction: column; gap: 12px; }
+.auth-field { display: flex; flex-direction: column; gap: 4px; }
+.auth-field span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+.auth-field input {
+  padding: 11px 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  outline: 0;
+  transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+.auth-field input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+@media (max-width: 640px) {
+  .auth-field input { font-size: 16px; }  /* prevent iOS auto-zoom */
+}
+
+.auth-err {
+  min-height: 18px;
+  font-size: 13px;
+  color: #d04848;
+  font-weight: 500;
+}
+
+.auth-submit {
+  margin-top: 4px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, var(--gold-2), var(--gold));
+  color: #fff;
+  border: 0; border-radius: 10px;
+  font: inherit; font-size: 14.5px; font-weight: 600;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+  box-shadow: 0 4px 12px var(--gold-soft);
+}
+.auth-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 16px var(--gold-soft); }
+.auth-submit:active { transform: scale(.97); }
+
+.auth-note {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.auth-note strong { color: var(--text-2); }
+
+/* Welcome banner on the home page after login */
+.welcome-banner {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  margin: 0 0 24px;
+  background: linear-gradient(135deg, var(--gold-soft), color-mix(in srgb, var(--gold-soft) 60%, var(--surface)));
+  border: 1px solid var(--gold-line);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.welcome-banner::before {
+  content: '';
+  position: absolute; right: -10px; top: -10px;
+  width: 80px; height: 80px;
+  background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
+  opacity: .15;
+  pointer-events: none;
+}
+.welcome-banner .wb-icon { font-size: 28px; flex: none; }
+.welcome-banner .wb-body { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.welcome-banner strong {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -.005em;
+  color: var(--text);
+}
+.welcome-banner em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+/* ============================================================
    M. PELLETIER — chatbot UI
    ============================================================ */
 .pelletier-fab {

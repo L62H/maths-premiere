@@ -7,6 +7,7 @@
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
 import { TRIVIA } from './trivia.js';
 import { mountChatbot } from './chatbot.js';
+import { mountAuth, currentUser, onAuthChange } from './auth.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
 
@@ -112,6 +113,9 @@ async function init() {
 
   // Mount the M. PELLETIER chatbot
   mountChatbot();
+  // Mount the local auth flow (login / signup / welcome banner)
+  mountAuth();
+  onAuthChange(() => { if ((state.currentRoute || '/') === '/') renderHome(); });
 }
 
 function prettifyTitle(s) {
@@ -428,15 +432,27 @@ function renderHome() {
   const recent = getRecent().slice(0, 6);
   const favs = getFavorites().slice(0, 6);
 
+  const user = currentUser();
+  const welcomeBanner = user ? `
+    <div class="welcome-banner">
+      <span class="wb-icon" aria-hidden="true">👋</span>
+      <div class="wb-body">
+        <strong>Bienvenue ${escapeHtml(user)} !</strong>
+        <em>Bon courage 😎</em>
+      </div>
+    </div>` : '';
+
   const main = document.getElementById('main');
   main.innerHTML = `
     <div class="main-inner">
+      ${welcomeBanner}
       <section class="hero">
         ${heroDeco()}
-        <div class="eyebrow">Programme · Première · Spécialité</div>
-        <h1>Toutes les <span class="gold">mathématiques</span><br>en un seul endroit.</h1>
-        <p>Cours, diaporamas, exercices et annales — organisés chapitre par chapitre,
-        consultables hors-ligne sur n'importe quel appareil.</p>
+        <div class="eyebrow">Programme officiel · Spécialité · Première Générale</div>
+        <h1>Spécialité <span class="gold">Mathématiques</span><br>en un seul endroit.</h1>
+        <p>L'intégralité du programme de Spécialité Mathématiques en Première Générale —
+        cours, diaporamas, exercices et annales, organisés chapitre par chapitre,
+        consultables sur n'importe quel appareil.</p>
         <div class="hero-stats">
           <div class="stat"><div class="v">${totalChapters}</div><div class="l">Chapitres</div></div>
           <div class="stat"><div class="v">${totalItems}</div><div class="l">Documents</div></div>

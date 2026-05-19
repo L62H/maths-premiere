@@ -1,6 +1,6 @@
-# Mathématiques — Première Spécialité
+# Spécialité Mathématiques — Première Générale
 
-Site interactif pour consulter cours, diaporamas, exercices et annales du programme de Première Spécialité Mathématiques.
+Site interactif pour consulter l'intégralité du programme officiel de **Spécialité Mathématiques en Première Générale** : cours, diaporamas, exercices et annales.
 
 **Démo en ligne :** https://l62h.github.io/maths-premiere/
 
