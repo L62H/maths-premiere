@@ -1075,7 +1075,9 @@ export function mountChatbot() {
 
 Le plus simple : ouvre la liste **« Choisir un chapitre »** juste au-dessus 👆 et clique sur celui que tu veux réviser — je t'envoie aussitôt la leçon, les formules et les astuces bac.
 
-Tu peux aussi me poser une **question libre** dans la zone de texte en bas, ou cliquer sur **« Continuer avec Gemini »** pour une réponse encore plus détaillée. ✨`,
+Tu peux aussi **taper le nom d'un chapitre** dans la zone de texte en bas (ex : « cosinus », « dérivation », « produit scalaire »…) et je te fais la leçon de la même façon.
+
+Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** : le prompt M. PELLETIER est automatiquement **copié dans ton presse-papier**, tu n'as plus qu'à le **coller** dans Gemini et poser ta question. ✨`,
       { skipHistory: true });
   }
 }
