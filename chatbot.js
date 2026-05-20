@@ -129,10 +129,124 @@ CE QUE TU PEUX FAIRE :
 QUAND TU NE SAIS PAS, TU LE DIS HONNÊTEMENT.`;
 
 // ===================================================================
+// Tolerant matching helpers
+// -------------------------------------------------------------------
+// L'élève écrit vite, sans accents, avec des fautes : la détection
+// de chapitre/sujet doit être très permissive. On normalise (accents,
+// casse, ponctuation, espaces multiples) et on autorise quelques
+// fautes de frappe via la distance de Damerau-Levenshtein.
+// ===================================================================
+function _normalize(s) {
+  return (s || '')
+    .toString()
+    .normalize('NFD')                          // accents → caractère + diacritique
+    .replace(/[̀-ͯ]/g, '')           // retire les diacritiques
+    .toLowerCase()
+    .replace(/[‘’′`´']/g, "'") // toutes les apostrophes/quotes
+    .replace(/[^a-z0-9' ]+/g, ' ')             // tout le reste devient un espace
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Distance de Damerau-Levenshtein (gère substitution, insertion,
+// suppression, transposition d'adjacents). Tolère 1-2 fautes selon
+// la longueur du mot.
+function _damLev(a, b) {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  if (Math.abs(m - n) > 4) return 99;
+  const d = Array.from({ length: m + 1 }, () => new Array(n + 1));
+  for (let i = 0; i <= m; i++) d[i][0] = i;
+  for (let j = 0; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(
+        d[i - 1][j] + 1,
+        d[i][j - 1] + 1,
+        d[i - 1][j - 1] + cost,
+      );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+    }
+  }
+  return d[m][n];
+}
+
+// Combien de fautes on tolère pour un mot donné (proportionnel à sa
+// longueur — on n'autorise pas "ab" → "cd").
+function _allowedTypos(w) {
+  if (w.length <= 3) return 0;
+  if (w.length <= 5) return 1;
+  if (w.length <= 8) return 2;
+  return 3;
+}
+
+// Est-ce que la requête `q` contient (approximativement) `needle` ?
+//   - normalisation des deux côtés
+//   - match exact en substring → ✓
+//   - match "sans espace" (pour "produitscalaire") → ✓
+//   - chaque mot du `needle` doit retrouver un token de `q` (≈)
+function _fuzzyContains(q, needle) {
+  const nq = _normalize(q);
+  const nn = _normalize(needle);
+  if (!nn) return false;
+  if (nq.includes(nn)) return true;
+  // Variante sans espaces (chapitres concaténés : "produitscalaire")
+  const nqStripped = nq.replace(/\s+/g, '');
+  const nnStripped = nn.replace(/\s+/g, '');
+  if (nqStripped.includes(nnStripped)) return true;
+
+  const qTokens = nq.split(' ').filter(Boolean);
+  const nWords  = nn.split(' ').filter(Boolean);
+  if (!nWords.length) return false;
+
+  for (const nw of nWords) {
+    const allow = _allowedTypos(nw);
+    let found = false;
+    for (const qt of qTokens) {
+      if (qt === nw) { found = true; break; }
+      if (nw.length >= 4 && (qt.includes(nw) || nw.includes(qt))) { found = true; break; }
+      if (Math.abs(qt.length - nw.length) <= allow + 1) {
+        if (_damLev(qt, nw) <= allow) { found = true; break; }
+      }
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
+// Détecte une référence à un chapitre par numéro :
+//   "chapitre 7", "Chap 7", "ch7", "ch.7", "chapitre7", ou juste "7"
+//   tout seul / "le 7" / "le chap 7", etc.
+// Renvoie le numéro 1-10, sinon null.
+function _detectChapterNumber(q) {
+  const n = _normalize(q);
+  // "chapitre 7" / "chap 7" / "ch 7" / "chapitre7" etc.
+  let m = n.match(/\b(?:chapitre|chapter|chap|ch)\s*0*(\d{1,2})\b/);
+  if (!m) m = n.match(/chap(?:itre)?0*(\d{1,2})/);
+  if (m) {
+    const k = parseInt(m[1], 10);
+    if (k >= 1 && k <= 10) return k;
+  }
+  // Requête réduite à un simple numéro ("7", "  7  ", "le 7")
+  m = n.match(/^(?:le\s+|la\s+|number\s+|numero\s+|n[°o]\s*)?0*(\d{1,2})$/);
+  if (m) {
+    const k = parseInt(m[1], 10);
+    if (k >= 1 && k <= 10) return k;
+  }
+  return null;
+}
+
+// ===================================================================
 // Local fallback (no API key) : large pattern-matched formulaire
 // Each entry covers a topic with EVERY important formula + a "leçon
 // rapide" and "astuces bac". Keep the order specific-first so longer
-// topics catch before generic words.
+// topics catch before generic words. Chaque entrée porte aussi un
+// numéro de chapitre (1..10) pour le repérage "chapitre N".
 // ===================================================================
 const FALLBACK_RESPONSES = [
   {
@@ -185,7 +299,7 @@ Demande-moi n'importe quel sujet pour plus de détails 💡`
   },
 
   {
-    keys: ['second degré', 'discriminant', 'delta', 'parabole', 'trinôme', 'b² − 4ac', 'b²-4ac', 'factoriser un trinôme', 'sommet'],
+    keys: ['second degré', 'second degres', 'second degre', '2nd degré', 'second-degré', 'discriminant', 'delta', 'parabole', 'trinôme', 'trinome', 'b² − 4ac', 'b²-4ac', 'b2-4ac', 'factoriser un trinôme', 'sommet', 'racines', 'racine carrée polynome', 'forme canonique'],
     answer: `**Second degré — ax² + bx + c**
 
 🔹 **Discriminant** : Δ = b² − 4ac
@@ -211,7 +325,7 @@ Demande-moi n'importe quel sujet pour plus de détails 💡`
   },
 
   {
-    keys: ['suite arithmétique', 'arithmétique', 'arithmetique', 'raison r', 'récurrence arithmétique'],
+    keys: ['suite arithmétique', 'arithmétique', 'arithmetique', 'aritmétique', 'aritmetique', 'raison r', 'récurrence arithmétique'],
     answer: `**Suite arithmétique** de premier terme u₀ (ou u₁) et raison r
 
 🔹 **Récurrence** : uₙ₊₁ = uₙ + r
@@ -229,7 +343,7 @@ Cas classique : 1 + 2 + 3 + … + n = **n(n+1)/2**
   },
 
   {
-    keys: ['suite géométrique', 'géométrique', 'geometrique', 'raison q', 'qⁿ'],
+    keys: ['suite géométrique', 'géométrique', 'geometrique', 'géometrique', 'geometrique suite', 'raison q', 'qⁿ', 'q^n'],
     answer: `**Suite géométrique** de premier terme u₀ (ou u₁) et raison q ≠ 0
 
 🔹 **Récurrence** : uₙ₊₁ = q · uₙ
@@ -254,7 +368,7 @@ Cas classique : 1 + 2 + 3 + … + n = **n(n+1)/2**
   },
 
   {
-    keys: ['suite', 'récurrence', 'recurrence', 'monotone', 'majorée', 'minorée', 'limite suite'],
+    keys: ['suite', 'suites', 'les suites', 'recurrence', 'récurrence', 'monotone', 'majorée', 'minorée', 'limite suite', 'hérédité', 'heredite', 'initialisation'],
     answer: `**Suites — boîte à outils**
 
 🔹 **Sens de variation** : étudie le signe de uₙ₊₁ − uₙ (ou le rapport uₙ₊₁/uₙ si > 0).
@@ -276,7 +390,7 @@ Cas classique : 1 + 2 + 3 + … + n = **n(n+1)/2**
   },
 
   {
-    keys: ['dérivée', 'deriver', 'tangente', 'taux de variation', 'derivable', 'nombre dérivé'],
+    keys: ['dérivée', 'derivee', 'dérivation', 'derivation', 'deriver', 'dériver', 'tangente', 'taux de variation', 'derivable', 'dérivable', 'nombre dérivé', 'nombre derive', 'fonction dérivée'],
     answer: `**Dérivation — formulaire complet**
 
 🔹 **Définition** : f'(x₀) = lim (h→0) [f(x₀+h) − f(x₀)] / h
@@ -313,7 +427,7 @@ Cas classique : 1 + 2 + 3 + … + n = **n(n+1)/2**
   },
 
   {
-    keys: ['étude de fonction', 'variations', 'tableau de variations', 'extremum', 'minimum', 'maximum'],
+    keys: ['étude de fonction', 'etude de fonction', 'étude de fonctions', 'etude de fonctions', 'étude fonction', 'etude fonction', 'variations', 'variation fonction', 'tableau de variations', 'tableau variation', 'tableau de variation', 'extremum', 'extrema', 'minimum', 'maximum', 'convexité', 'convexite', 'concavité', 'concavite', 'point d inflexion', 'inflexion', 'asymptote'],
     answer: `**Étude de fonction — méthode**
 
 1. **Domaine de définition** D_f.
@@ -340,7 +454,7 @@ Cas classique : 1 + 2 + 3 + … + n = **n(n+1)/2**
   },
 
   {
-    keys: ['probabilité', 'probabilite', 'proba', 'arbre', 'conditionnelle', 'bayes', 'événement', 'indépendant', 'totales'],
+    keys: ['probabilité conditionnelle', 'probabilites conditionnelles', 'probabilité', 'probabilites', 'probabilite', 'probabilites conditionnelle', 'probabilité conditionnel', 'proba', 'probas', 'arbre', 'arbre pondéré', 'conditionnelle', 'conditionnel', 'bayes', 'événement', 'evenement', 'indépendant', 'independant', 'indépendance', 'independance', 'totales', 'probabilités totales', 'probabilites totales'],
     answer: `**Probabilités conditionnelles — toutes les formules**
 
 🔹 **Probabilité conditionnelle**
@@ -371,7 +485,7 @@ A et B indépendants ⟺ **P(A ∩ B) = P(A) · P(B)**
   },
 
   {
-    keys: ['exponentielle', 'exp', 'eˣ', 'e^x', 'logarithme', 'ln', 'fonction exponentielle'],
+    keys: ['exponentielle', 'exponentiel', 'exponentielles', 'fonction exponentielle', 'fonction exp', 'fonction expo', 'expo', 'exp', 'eˣ', 'e^x', 'croissance comparée', 'croissance comparee'],
     answer: `**Fonction exponentielle**
 
 🔹 **Définition** : exp est l'unique fonction f dérivable sur ℝ telle que **f' = f** et **f(0) = 1**. On note exp(x) = eˣ.
@@ -406,7 +520,7 @@ A et B indépendants ⟺ **P(A ∩ B) = P(A) · P(B)**
   },
 
   {
-    keys: ['cosinus', 'sinus', 'tan', 'trigo', 'radian', 'cercle trigo', 'cercle trigonométrique'],
+    keys: ['cosinus', 'sinus', 'cosinus et sinus', 'cosinus sinus', 'sin et cos', 'cos et sin', 'cos', 'sin', 'tan', 'tangente trigo', 'trigo', 'trigonométrie', 'trigonometrie', 'trigonométrique', 'trigonometrique', 'radian', 'radians', 'cercle trigo', 'cercle trigonométrique', 'cercle trigonometrique', 'valeurs remarquables'],
     answer: `**Trigonométrie**
 
 🔹 **Cercle trigonométrique** : cercle de rayon 1 centré en O.
@@ -441,7 +555,7 @@ A et B indépendants ⟺ **P(A ∩ B) = P(A) · P(B)**
   },
 
   {
-    keys: ['produit scalaire', 'orthogonal', 'norme', 'vecteur', 'angle entre vecteurs', 'projeté'],
+    keys: ['produit scalaire', 'produits scalaires', 'produit scalair', 'scalaire', 'orthogonal', 'orthogonalité', 'orthogonalite', 'norme', 'norme vecteur', 'angle entre vecteurs', 'projeté', 'projete', 'al kashi', 'al-kashi', 'alkashi'],
     answer: `**Produit scalaire**
 
 🔹 **Définition (repère orthonormé)** : u(x ; y), v(x' ; y')
@@ -477,7 +591,7 @@ u · v = ‖u_proj‖ · ‖v‖
   },
 
   {
-    keys: ['variable aléatoire', 'espérance', 'variance', 'binomiale', 'écart-type', 'loi binomiale', 'bernoulli'],
+    keys: ['variable aléatoire', 'variables aléatoires', 'variable aleatoire', 'variables aleatoires', 'va', 'espérance', 'esperance', 'variance', 'binomiale', 'binomial', 'loi binomiale', 'loi de probabilité', 'loi de probabilite', 'loi proba', 'écart-type', 'ecart-type', 'ecart type', 'écart type', 'bernoulli', 'loi de bernoulli'],
     answer: `**Variable aléatoire**
 
 🔹 **Variable aléatoire discrète** X qui prend les valeurs x₁, x₂, …, xₙ.
@@ -507,7 +621,7 @@ Relation : **C(n, k) = C(n−1, k−1) + C(n−1, k)** (Pascal)
   },
 
   {
-    keys: ['géométrie repérée', 'géométrie repere', 'vecteur', 'coordonnées', 'droite', 'pente', 'équation cartésienne', 'normal'],
+    keys: ['géométrie repérée', 'geometrie reperee', 'géométrie repere', 'geometrie repere', 'géométrie', 'geometrie', 'géometrie reperee', 'vecteur', 'vecteurs', 'coordonnées', 'coordonnees', 'droite', 'droites', 'pente', 'équation cartésienne', 'equation cartesienne', 'equation reduite', 'équation réduite', 'colinéaire', 'colineaire', 'colinearité', 'vecteur directeur', 'vecteur normal'],
     answer: `**Géométrie repérée**
 
 🔹 **Vecteur** AB(x_B − x_A ; y_B − y_A)
@@ -644,10 +758,43 @@ Demande un de ces sujets pour avoir le **formulaire complet** et les **astuces b
   },
 ];
 
+// Numéro de chapitre → mot-clé "principal" pour récupérer la bonne
+// entrée dans FALLBACK_RESPONSES.
+const CHAPTER_PRIMARY_KEYWORD = {
+  1:  'second degré',
+  2:  'suite',
+  3:  'dérivée',
+  4:  'géométrie repérée',
+  5:  'probabilité',
+  6:  'étude de fonction',
+  7:  'cosinus',
+  8:  'exponentielle',
+  9:  'variable aléatoire',
+  10: 'produit scalaire',
+};
+
 function localAnswer(q) {
-  const ql = q.toLowerCase();
+  if (!q || !q.trim()) return null;
+
+  // 1) L'utilisateur a-t-il mentionné un numéro de chapitre ?
+  //    ("chapitre 7", "Chap7", "ch 7", ou juste "7")
+  const cn = _detectChapterNumber(q);
+  if (cn !== null) {
+    const primary = CHAPTER_PRIMARY_KEYWORD[cn];
+    if (primary) {
+      for (const r of FALLBACK_RESPONSES) {
+        for (const k of r.keys) {
+          if (_fuzzyContains(primary, k)) return r.answer;
+        }
+      }
+    }
+  }
+
+  // 2) Match flou normal (accents, casse, ponctuation, fautes simples)
   for (const r of FALLBACK_RESPONSES) {
-    for (const k of r.keys) if (ql.includes(k)) return r.answer;
+    for (const k of r.keys) {
+      if (_fuzzyContains(q, k)) return r.answer;
+    }
   }
   return null;
 }
@@ -894,7 +1041,8 @@ export function mountChatbot() {
     hist.forEach(m => appendBubble(m.role, m.content, { skipHistory: true }));
   } else {
     appendBubble('assistant', `Bonjour ! Je suis **M. PELLETIER** 👋
-Tape simplement le **nom d'un chapitre** pour voir la leçon entière.
+Tape simplement le **nom d'un chapitre** (ex : « cosinus », « dérivation », « probabilité »…) ou son **numéro** (« chapitre 7 », « chap 7 », ou juste « 7 »).
+Pas de stress pour les fautes : accents, majuscules, espaces ou petites coquilles, je m'en accommode 😉
 
 Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas — un prompt prêt à l'emploi est copié automatiquement, tu n'as plus qu'à le coller. ✨`,
       { skipHistory: true });
@@ -962,9 +1110,23 @@ async function onSubmit(e) {
   // 1-second cooldown released after the bot fully finishes typing
   const release = () => setTimeout(() => setBotBusy(false), 1000);
   try {
-    const reply = localAnswer(msg) || `Pour voir la **leçon entière**, tape simplement le **nom d'un chapitre** (ex : « dérivation », « suites », « probabilité »…).
+    const reply = localAnswer(msg) || `Hmm, je n'ai pas reconnu de chapitre dans ta question 🤔
+Essaie un de ces déclencheurs (avec ou sans accents / majuscules, fautes acceptées) :
 
-Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas — un prompt prêt à l'emploi est copié automatiquement, tu n'as plus qu'à le coller. ✨`;
+📖 **Chapitre 1** — second degré, discriminant, parabole
+📖 **Chapitre 2** — suites, arithmétique, géométrique, récurrence
+📖 **Chapitre 3** — dérivation, dérivée, tangente
+📖 **Chapitre 4** — géométrie repérée, vecteur, droite
+📖 **Chapitre 5** — probabilité conditionnelle, arbre, Bayes
+📖 **Chapitre 6** — étude de fonction, variations, asymptote
+📖 **Chapitre 7** — cosinus, sinus, trigonométrie
+📖 **Chapitre 8** — exponentielle, exp, e^x
+📖 **Chapitre 9** — variable aléatoire, binomiale, espérance
+📖 **Chapitre 10** — produit scalaire, orthogonal, norme
+
+Tu peux aussi taper simplement **« chapitre 7 »** ou **« 7 »** ✨
+
+Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas.`;
     await new Promise(r => setTimeout(r, 650 + Math.random() * 350));
     typing.remove();
     appendBubble('assistant', reply, { onDone: release });
