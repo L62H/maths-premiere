@@ -773,6 +773,21 @@ const CHAPTER_PRIMARY_KEYWORD = {
   10: 'produit scalaire',
 };
 
+// Titres affichés dans la liste déroulante du chatbot. Le clic
+// sur une entrée envoie automatiquement la question correspondante.
+const CHAPTER_MENU = [
+  { num: 1,  title: 'Second degré',              emoji: '📘' },
+  { num: 2,  title: 'Les suites',                emoji: '📗' },
+  { num: 3,  title: 'Dérivation',                emoji: '📙' },
+  { num: 4,  title: 'Géométrie repérée',         emoji: '📕' },
+  { num: 5,  title: 'Probabilité conditionnelle', emoji: '📓' },
+  { num: 6,  title: 'Étude de fonctions',        emoji: '📔' },
+  { num: 7,  title: 'Cosinus et Sinus',          emoji: '📒' },
+  { num: 8,  title: 'Fonction exponentielle',    emoji: '📘' },
+  { num: 9,  title: 'Variable aléatoire',        emoji: '📗' },
+  { num: 10, title: 'Produit scalaire',          emoji: '📙' },
+];
+
 function localAnswer(q) {
   if (!q || !q.trim()) return null;
 
@@ -1003,6 +1018,24 @@ export function mountChatbot() {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
     </header>
+    <div class="pp-chapters" id="ppChapters">
+      <button class="pp-chapters-trigger" id="ppChaptersTrigger" type="button" aria-expanded="false" aria-controls="ppChaptersList">
+        <span class="pp-chapters-ic" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 5h12a3 3 0 0 1 3 3v11a1 1 0 0 1-1.4.92L13 18l-4.6 1.92A1 1 0 0 1 7 19V8a3 3 0 0 1 3-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/></svg>
+        </span>
+        <span class="pp-chapters-label">Choisir un chapitre</span>
+        <span class="pp-chapters-chev" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </span>
+      </button>
+      <div class="pp-chapters-list" id="ppChaptersList" role="listbox" hidden>
+        ${CHAPTER_MENU.map(c => `
+          <button class="pp-chapter-item" type="button" role="option" data-chapter="${c.num}">
+            <span class="pp-chapter-num">${c.emoji} ${c.num}</span>
+            <span class="pp-chapter-title">${c.title}</span>
+          </button>`).join('')}
+      </div>
+    </div>
     <div class="pp-body" id="ppBody">
       <div class="pp-msgs" id="ppMsgs" aria-live="polite"></div>
     </div>
@@ -1026,6 +1059,24 @@ export function mountChatbot() {
   panel.querySelector('.pp-close').addEventListener('click', closeChat);
   panel.querySelector('#ppForm').addEventListener('submit', onSubmit);
   panel.querySelector('#ppGemini').addEventListener('click', handoffGemini);
+
+  // Liste déroulante des 10 chapitres : trigger + items
+  const trigger = panel.querySelector('#ppChaptersTrigger');
+  const list    = panel.querySelector('#ppChaptersList');
+  trigger.addEventListener('click', (e) => { e.stopPropagation(); toggleChaptersList(); });
+  list.querySelectorAll('.pp-chapter-item').forEach(it => {
+    it.addEventListener('click', () => {
+      const n = parseInt(it.dataset.chapter, 10);
+      toggleChaptersList(false);
+      askChapter(n);
+    });
+  });
+  // Ferme la liste si on clique ailleurs (n'importe où dans le panneau
+  // hors de .pp-chapters, ou complètement à l'extérieur).
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.pp-chapters')) toggleChaptersList(false);
+  });
+
   const input = panel.querySelector('#ppInput');
   input.addEventListener('input', autoGrow);
   input.addEventListener('keydown', (e) => {
@@ -1041,10 +1092,10 @@ export function mountChatbot() {
     hist.forEach(m => appendBubble(m.role, m.content, { skipHistory: true }));
   } else {
     appendBubble('assistant', `Bonjour ! Je suis **M. PELLETIER** 👋
-Tape simplement le **nom d'un chapitre** (ex : « cosinus », « dérivation », « probabilité »…) ou son **numéro** (« chapitre 7 », « chap 7 », ou juste « 7 »).
-Pas de stress pour les fautes : accents, majuscules, espaces ou petites coquilles, je m'en accommode 😉
 
-Pour une **réponse plus précise** (corriger un exercice, expliquer en détail), clique sur **« Continuer avec Gemini »** en bas — un prompt prêt à l'emploi est copié automatiquement, tu n'as plus qu'à le coller. ✨`,
+Le plus simple : ouvre la liste **« Choisir un chapitre »** juste au-dessus 👆 et clique sur celui que tu veux réviser — je t'envoie aussitôt la leçon, les formules et les astuces bac.
+
+Tu peux aussi me poser une **question libre** dans la zone de texte en bas, ou cliquer sur **« Continuer avec Gemini »** pour une réponse encore plus détaillée. ✨`,
       { skipHistory: true });
   }
 }
@@ -1092,6 +1143,49 @@ function autoGrow(e) {
   const t = e.currentTarget;
   t.style.height = 'auto';
   t.style.height = Math.min(160, t.scrollHeight) + 'px';
+}
+
+function toggleChaptersList(forceOpen) {
+  const trig = document.getElementById('ppChaptersTrigger');
+  const list = document.getElementById('ppChaptersList');
+  if (!trig || !list) return;
+  const isOpen = !list.hidden;
+  const next   = (typeof forceOpen === 'boolean') ? forceOpen : !isOpen;
+  list.hidden  = !next;
+  trig.setAttribute('aria-expanded', String(next));
+  trig.classList.toggle('open', next);
+}
+
+// Pose au bot la question "Chapitre N" : insère le message utilisateur
+// dans la conversation, joue l'animation de frappe, puis appelle
+// directement localAnswer avec le numéro de chapitre.
+async function askChapter(n) {
+  if (botBusy) return;
+  const meta = (CHAPTER_MENU || []).find(c => c.num === n);
+  if (!meta) return;
+  setBotBusy(true);
+
+  const userText = `📖 Chapitre ${n} — ${meta.title}`;
+  appendBubble('user', userText);
+  scrollMsgsToBottom();
+
+  const typing = appendBubble('assistant', '<span class="pp-typing"><i></i><i></i><i></i></span>',
+    { html: true, transient: true });
+  const release = () => setTimeout(() => setBotBusy(false), 1000);
+
+  try {
+    // On utilise la même logique que pour une saisie texte : on envoie
+    // "chapitre N" à localAnswer, qui repère le numéro et retourne la
+    // bonne entrée de FALLBACK_RESPONSES.
+    const reply = localAnswer(`chapitre ${n}`) ||
+      `Désolé, je n'ai pas trouvé de leçon pour le chapitre ${n}.`;
+    await new Promise(r => setTimeout(r, 500 + Math.random() * 300));
+    typing.remove();
+    appendBubble('assistant', reply, { onDone: release });
+  } catch (err) {
+    typing.remove();
+    appendBubble('assistant', `❗ ${err.message || 'Erreur inattendue.'}`, { onDone: release });
+  }
 }
 
 async function onSubmit(e) {
