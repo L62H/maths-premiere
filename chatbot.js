@@ -129,12 +129,17 @@ CE QUE TU PEUX FAIRE :
 QUAND TU NE SAIS PAS, TU LE DIS HONNÊTEMENT.`;
 
 // ===================================================================
-// Tolerant matching helpers
+// Matching helpers (tolérance ciblée)
 // -------------------------------------------------------------------
-// L'élève écrit vite, sans accents, avec des fautes : la détection
-// de chapitre/sujet doit être très permissive. On normalise (accents,
-// casse, ponctuation, espaces multiples) et on autorise quelques
-// fautes de frappe via la distance de Damerau-Levenshtein.
+// On tolère ce que l'élève peut faire sans se rendre compte qu'il
+// "écrit mal" :
+//   • accents absents ou ajoutés (NFD + strip diacritiques)
+//   • majuscules / minuscules
+//   • espaces multiples / parasites / ponctuation
+// En revanche on n'accepte PAS les fautes d'orthographe : pas de
+// Levenshtein, pas de match partiel "trig" → "trigo". Le mot doit
+// être présent en entier dans la requête, avec ses lettres dans le
+// bon ordre. Sinon on renverrait le mauvais chapitre.
 // ===================================================================
 function _normalize(s) {
   return (s || '')
@@ -142,81 +147,55 @@ function _normalize(s) {
     .normalize('NFD')                          // accents → caractère + diacritique
     .replace(/[̀-ͯ]/g, '')           // retire les diacritiques
     .toLowerCase()
-    .replace(/[‘’′`´']/g, "'") // toutes les apostrophes/quotes
-    .replace(/[^a-z0-9' ]+/g, ' ')             // tout le reste devient un espace
+    // apostrophes deviennent des espaces : "l'étude" → "l etude"
+    // (sinon "l'etude" ne matcherait pas la clé "etude")
+    .replace(/[^a-z0-9 ]+/g, ' ')              // tout le reste devient un espace
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-// Distance de Damerau-Levenshtein (gère substitution, insertion,
-// suppression, transposition d'adjacents). Tolère 1-2 fautes selon
-// la longueur du mot.
-function _damLev(a, b) {
-  if (a === b) return 0;
-  const m = a.length, n = b.length;
-  if (!m) return n;
-  if (!n) return m;
-  if (Math.abs(m - n) > 4) return 99;
-  const d = Array.from({ length: m + 1 }, () => new Array(n + 1));
-  for (let i = 0; i <= m; i++) d[i][0] = i;
-  for (let j = 0; j <= n; j++) d[0][j] = j;
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      d[i][j] = Math.min(
-        d[i - 1][j] + 1,
-        d[i][j - 1] + 1,
-        d[i - 1][j - 1] + cost,
-      );
-      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
-        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
-      }
-    }
-  }
-  return d[m][n];
+// Échappe les caractères spéciaux pour les utiliser dans un RegExp.
+function _reEscape(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Combien de fautes on tolère pour un mot donné (proportionnel à sa
-// longueur — on n'autorise pas "ab" → "cd").
-function _allowedTypos(w) {
-  if (w.length <= 3) return 0;
-  if (w.length <= 5) return 1;
-  if (w.length <= 8) return 2;
-  return 3;
-}
-
-// Est-ce que la requête `q` contient (approximativement) `needle` ?
-//   - normalisation des deux côtés
-//   - match exact en substring → ✓
-//   - match "sans espace" (pour "produitscalaire") → ✓
-//   - chaque mot du `needle` doit retrouver un token de `q` (≈)
+// Est-ce que `needle` apparaît comme un mot/phrase entier dans `q` ?
+// (les deux sont normalisés ; les frontières sont les bords de
+// chaîne ou tout caractère non-alphanumérique)
 function _fuzzyContains(q, needle) {
   const nq = _normalize(q);
   const nn = _normalize(needle);
   if (!nn) return false;
-  if (nq.includes(nn)) return true;
-  // Variante sans espaces (chapitres concaténés : "produitscalaire")
+  // Sécurité : certaines "clés" symboliques deviennent trop courtes
+  // après normalisation (ex : "eˣ" → "e", "qⁿ" → "q"). Une clé d'une
+  // seule lettre serait sur-déclenchée.
+  if (nn.replace(/\s+/g, '').length < 2) return false;
+
+  // 1) Match phrase entière avec frontières de mots.
+  //    On autorise un 's' final optionnel (pluriel français usuel :
+  //    "les suites", "des dérivées", "produits scalaires"…). Pas
+  //    d'autre tolérance de lettre, sinon on dévie sur les fautes.
+  //    "second degre" trouve "second degre"/"second degres", mais
+  //    "exp" ne trouve PAS "exp" dans "expression".
+  const re = new RegExp(`(^|[^a-z0-9])${_reEscape(nn)}s?([^a-z0-9]|$)`);
+  if (re.test(nq)) return true;
+
+  // 2) Tolérance "espaces oubliés" : si on enlève tous les espaces
+  //    et que la requête contient le mot-clé comme un bloc entier
+  //    (frontière en début/fin de la requête sans espace), on accepte.
+  //    Permet "produitscalaire" → match "produit scalaire".
   const nqStripped = nq.replace(/\s+/g, '');
   const nnStripped = nn.replace(/\s+/g, '');
-  if (nqStripped.includes(nnStripped)) return true;
-
-  const qTokens = nq.split(' ').filter(Boolean);
-  const nWords  = nn.split(' ').filter(Boolean);
-  if (!nWords.length) return false;
-
-  for (const nw of nWords) {
-    const allow = _allowedTypos(nw);
-    let found = false;
-    for (const qt of qTokens) {
-      if (qt === nw) { found = true; break; }
-      if (nw.length >= 4 && (qt.includes(nw) || nw.includes(qt))) { found = true; break; }
-      if (Math.abs(qt.length - nw.length) <= allow + 1) {
-        if (_damLev(qt, nw) <= allow) { found = true; break; }
-      }
-    }
-    if (!found) return false;
+  if (nnStripped.length >= 6) {
+    // longueur minimum 6 pour éviter qu'une clé courte comme "exp"
+    // ne matche n'importe où dans un long mot ("expression").
+    if (nqStripped === nnStripped) return true;
+    // permet aussi "leproduitscalaire" → reconnaît le mot-clé seulement
+    // s'il est en bord de chaîne stripped (début ou fin).
+    if (nqStripped.startsWith(nnStripped) || nqStripped.endsWith(nnStripped)) return true;
   }
-  return true;
+
+  return false;
 }
 
 // Détecte une référence à un chapitre par numéro :
@@ -225,15 +204,16 @@ function _fuzzyContains(q, needle) {
 // Renvoie le numéro 1-10, sinon null.
 function _detectChapterNumber(q) {
   const n = _normalize(q);
-  // "chapitre 7" / "chap 7" / "ch 7" / "chapitre7" etc.
-  let m = n.match(/\b(?:chapitre|chapter|chap|ch)\s*0*(\d{1,2})\b/);
+  // "chapitre 7" / "chap 7" / "ch 7" / "chapitre7" /
+  // "chapitre n°7" / "chap n 7" etc. (le "n°" est normalisé en "n ")
+  let m = n.match(/\b(?:chapitre|chapter|chap|ch)\s*(?:n\s*)?0*(\d{1,2})\b/);
   if (!m) m = n.match(/chap(?:itre)?0*(\d{1,2})/);
   if (m) {
     const k = parseInt(m[1], 10);
     if (k >= 1 && k <= 10) return k;
   }
-  // Requête réduite à un simple numéro ("7", "  7  ", "le 7")
-  m = n.match(/^(?:le\s+|la\s+|number\s+|numero\s+|n[°o]\s*)?0*(\d{1,2})$/);
+  // Requête réduite à un simple numéro ("7", "  7  ", "le 7", "n 7")
+  m = n.match(/^(?:le\s+|la\s+|number\s+|numero\s+|n\s*)?0*(\d{1,2})$/);
   if (m) {
     const k = parseInt(m[1], 10);
     if (k >= 1 && k <= 10) return k;
@@ -1205,7 +1185,8 @@ async function onSubmit(e) {
   const release = () => setTimeout(() => setBotBusy(false), 1000);
   try {
     const reply = localAnswer(msg) || `Hmm, je n'ai pas reconnu de chapitre dans ta question 🤔
-Essaie un de ces déclencheurs (avec ou sans accents / majuscules, fautes acceptées) :
+Le plus simple : ouvre la liste **« Choisir un chapitre »** en haut du chat 👆
+Sinon écris un de ces mots-clés (accents et majuscules optionnels, mais bien orthographié) :
 
 📖 **Chapitre 1** — second degré, discriminant, parabole
 📖 **Chapitre 2** — suites, arithmétique, géométrique, récurrence
