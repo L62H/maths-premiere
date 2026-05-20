@@ -1,15 +1,14 @@
 // ===================================================================
-//  Système d'identification local (côté navigateur)
+//  Système d'identification 100 % local (côté navigateur)
 // ===================================================================
 //  Le site est statique (GitHub Pages) — il n'y a donc pas de serveur
-//  central. Les comptes créés ici sont stockés UNIQUEMENT dans le
-//  navigateur de l'utilisateur (localStorage), les mots de passe sont
-//  hachés en SHA-256 avec un sel. Plusieurs utilisateurs peuvent avoir
-//  des comptes sur le même appareil.
+//  central qui stocke les comptes. Tout reste dans le navigateur de
+//  l'utilisateur (localStorage). Les mots de passe sont hachés en
+//  SHA-256 avec un sel (jamais stockés en clair). Plusieurs comptes
+//  peuvent coexister sur le même appareil.
 //
-//  L'envoi d'email de confirmation n'est pas possible sur un site
-//  statique : l'inscription valide directement le compte. La couche
-//  "email" sert uniquement à associer une adresse à l'identifiant.
+//  Note : pas de "confirmation par email" possible sur un site
+//  statique ; l'inscription valide donc le compte immédiatement.
 // ===================================================================
 
 const USERS_KEY = 'mp1.users.v1';
@@ -67,7 +66,7 @@ export async function signup({ username, email, password, confirm }) {
   if (users[username.toLowerCase()]) throw new Error('Cet identifiant est déjà pris');
 
   users[username.toLowerCase()] = {
-    username,                                // form d'affichage
+    username,
     email,
     pw: await hashPassword(password),
     createdAt: Date.now(),
@@ -107,7 +106,37 @@ export function mountAuth() {
   const themeBtn = document.getElementById('themeBtn');
   themeBtn.parentElement.insertBefore(btn, themeBtn);
 
-  // 2) Modal — créé une seule fois, restera caché par défaut
+  // 2) Bandeau de bienvenue persistant — collé en haut de l'écran
+  //    (au-dessus de l'app-bar). Apparaît uniquement quand un compte
+  //    est connecté ; visible sur toutes les pages (mobile + PC).
+  const wb = document.createElement('div');
+  wb.id = 'welcomeBar';
+  wb.className = 'welcome-bar';
+  wb.hidden = true;
+  wb.innerHTML = `
+    <span class="wb-icon" aria-hidden="true">👋</span>
+    <span class="wb-text">
+      <strong>Bienvenue <span class="wb-user"></span> !</strong>
+      <em>Bon courage 😎</em>
+    </span>
+    <button class="wb-logout" type="button" aria-label="Se déconnecter">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 12H4m0 0 4-4m-4 4 4 4M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <span class="wb-logout-label">Déconnexion</span>
+    </button>
+  `;
+  document.body.insertBefore(wb, document.body.firstChild);
+  wb.querySelector('.wb-logout').addEventListener('click', () => {
+    const u = currentUser();
+    logout();
+    refreshUserUI();
+    _onChange && _onChange(null);
+    toastSafe(`À bientôt ${u} ! 👋`);
+    // Re-propose le modal pour pouvoir se reconnecter / changer de compte
+    try { sessionStorage.removeItem('mp1.auth.modal.closed'); } catch {}
+    openAuth();
+  });
+
+  // 3) Modal — créé une seule fois, reste caché par défaut
   const modal = document.createElement('div');
   modal.id = 'authModal';
   modal.className = 'auth-modal';
@@ -121,16 +150,26 @@ export function mountAuth() {
       <div class="auth-head">
         <div class="auth-mark" aria-hidden="true">Σ</div>
         <h2 class="auth-title">Bienvenue</h2>
-        <p class="auth-sub">Connecte-toi pour personnaliser ton expérience.</p>
+        <p class="auth-sub">Crée un compte ou connecte-toi pour personnaliser ton expérience.</p>
       </div>
+
+      <div class="auth-trust" role="note" aria-label="Confidentialité">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 4.5 3.5 8.5 8 10 4.5-1.5 8-5.5 8-10V5l-8-3z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        <div>
+          <strong>100 % privé · 100 % local</strong>
+          <span>Aucune donnée n'est envoyée ni sauvegardée sur un serveur. Tes identifiants restent <em>uniquement</em> dans ce navigateur, et ton mot de passe est haché en SHA-256 — illisible, même pour le créateur du site.</span>
+        </div>
+      </div>
+
       <div class="auth-tabs" role="tablist">
         <button data-tab="login"  class="auth-tab active" role="tab" aria-selected="true">Se connecter</button>
         <button data-tab="signup" class="auth-tab"        role="tab" aria-selected="false">Créer un compte</button>
       </div>
-      <form id="loginForm" class="auth-form" autocomplete="on">
+
+      <form id="loginForm" class="auth-form" autocomplete="on" novalidate>
         <label class="auth-field">
           <span>Identifiant</span>
-          <input type="text" name="username" required autocomplete="username" minlength="3" maxlength="20" autocapitalize="none" spellcheck="false"/>
+          <input type="text" name="username" required autocomplete="username" minlength="3" maxlength="20" autocapitalize="none" spellcheck="false" inputmode="text"/>
         </label>
         <label class="auth-field">
           <span>Mot de passe</span>
@@ -138,15 +177,17 @@ export function mountAuth() {
         </label>
         <div class="auth-err" id="loginErr"></div>
         <button type="submit" class="auth-submit">Se connecter</button>
+        <p class="auth-switch">Pas encore de compte ? <a href="#" data-go="signup">Crée-le en 10 secondes</a></p>
       </form>
-      <form id="signupForm" class="auth-form" autocomplete="on" hidden>
+
+      <form id="signupForm" class="auth-form" autocomplete="on" hidden novalidate>
         <label class="auth-field">
           <span>Identifiant</span>
-          <input type="text" name="username" required autocomplete="username" minlength="3" maxlength="20" autocapitalize="none" spellcheck="false" placeholder="3 à 20 caractères"/>
+          <input type="text" name="username" required autocomplete="username" minlength="3" maxlength="20" autocapitalize="none" spellcheck="false" inputmode="text" placeholder="3 à 20 caractères"/>
         </label>
         <label class="auth-field">
           <span>Email</span>
-          <input type="email" name="email" required autocomplete="email" placeholder="prenom@exemple.fr"/>
+          <input type="email" name="email" required autocomplete="email" inputmode="email" placeholder="prenom@exemple.fr"/>
         </label>
         <label class="auth-field">
           <span>Mot de passe</span>
@@ -158,16 +199,15 @@ export function mountAuth() {
         </label>
         <div class="auth-err" id="signupErr"></div>
         <button type="submit" class="auth-submit">Créer mon compte</button>
+        <p class="auth-switch">Tu as déjà un compte ? <a href="#" data-go="login">Connecte-toi</a></p>
       </form>
-      <p class="auth-note">
-        🔒 <strong>Compte 100 % local</strong> — tes identifiants restent dans ton navigateur,
-        ils ne sont jamais envoyés sur un serveur. Mot de passe haché en SHA-256.
-      </p>
+
+      <button type="button" class="auth-skip" data-close>Continuer sans compte</button>
     </div>
   `;
   document.body.appendChild(modal);
 
-  // 3) Wire UI
+  // 4) Wire UI
   btn.addEventListener('click', () => {
     if (currentUser()) {
       // Déconnexion immédiate
@@ -176,21 +216,42 @@ export function mountAuth() {
       refreshUserUI();
       _onChange && _onChange(null);
       toastSafe(`À bientôt ${u} ! 👋`);
+      try { sessionStorage.removeItem('mp1.auth.modal.closed'); } catch {}
+      openAuth();
     } else {
       openAuth();
     }
   });
   modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', closeAuth));
   modal.querySelectorAll('.auth-tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+  modal.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    switchTab(a.dataset.go);
+  }));
   modal.querySelector('#loginForm').addEventListener('submit', onLogin);
   modal.querySelector('#signupForm').addEventListener('submit', onSignup);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) closeAuth(); });
 
   refreshUserUI();
+
+  // 5) Auto-popup : si personne n'est connecté on ouvre le modal au
+  //    chargement, sauf si l'utilisateur l'a déjà fermé pendant cette
+  //    session (sessionStorage) — pour ne pas le harceler à chaque
+  //    changement de page.
+  if (!currentUser() && !sessionStorage.getItem('mp1.auth.modal.closed')) {
+    // S'il existe déjà des comptes sur cet appareil, on ouvre direct
+    // l'onglet "Se connecter" ; sinon on commence sur "Créer un compte".
+    const hasAccounts = Object.keys(getUsers()).length > 0;
+    setTimeout(() => {
+      openAuth();
+      if (!hasAccounts) switchTab('signup');
+    }, 250);
+  }
 }
 
 function switchTab(tab) {
   const modal = document.getElementById('authModal');
+  if (!modal) return;
   modal.querySelectorAll('.auth-tab').forEach(t => {
     const on = t.dataset.tab === tab;
     t.classList.toggle('active', on);
@@ -198,7 +259,9 @@ function switchTab(tab) {
   });
   modal.querySelector('#loginForm').hidden  = tab !== 'login';
   modal.querySelector('#signupForm').hidden = tab !== 'signup';
-  modal.querySelector(`#${tab}Err`).textContent = '';
+  const errId = tab === 'login' ? 'loginErr' : 'signupErr';
+  const errEl = modal.querySelector('#' + errId);
+  if (errEl) errEl.textContent = '';
   // Auto-focus first input of the visible form
   const first = modal.querySelector(tab === 'login' ? '#loginForm input' : '#signupForm input');
   if (first) setTimeout(() => first.focus(), 50);
@@ -206,16 +269,23 @@ function switchTab(tab) {
 
 function openAuth() {
   const m = document.getElementById('authModal');
+  if (!m) return;
   m.hidden = false;
   requestAnimationFrame(() => m.classList.add('open'));
   document.body.classList.add('auth-open');
-  setTimeout(() => m.querySelector('#loginForm input')?.focus(), 200);
+  setTimeout(() => {
+    const target = m.querySelector('#loginForm:not([hidden]) input, #signupForm:not([hidden]) input');
+    target && target.focus();
+  }, 200);
 }
 function closeAuth() {
   const m = document.getElementById('authModal');
+  if (!m) return;
   m.classList.remove('open');
   document.body.classList.remove('auth-open');
   setTimeout(() => { m.hidden = true; }, 240);
+  // Empêche le re-pop systématique pendant cette session de navigation.
+  try { sessionStorage.setItem('mp1.auth.modal.closed', '1'); } catch {}
 }
 
 async function onLogin(e) {
@@ -263,21 +333,35 @@ async function onSignup(e) {
 function refreshUserUI() {
   const u = currentUser();
   const btn = document.getElementById('authBtn');
-  if (!btn) return;
-  if (u) {
-    btn.innerHTML = `
-      <span class="auth-chip">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
-        <span class="auth-name">${escapeHtml(u)}</span>
-      </span>`;
-    btn.classList.add('logged');
-    btn.setAttribute('aria-label', 'Se déconnecter');
-    btn.title = `Connecté comme ${u} — clique pour déconnecter`;
-  } else {
-    btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>`;
-    btn.classList.remove('logged');
-    btn.setAttribute('aria-label', 'Se connecter');
-    btn.title = 'Se connecter';
+  const wb  = document.getElementById('welcomeBar');
+
+  if (btn) {
+    if (u) {
+      btn.innerHTML = `
+        <span class="auth-chip">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+          <span class="auth-name">${escapeHtml(u)}</span>
+        </span>`;
+      btn.classList.add('logged');
+      btn.setAttribute('aria-label', 'Se déconnecter');
+      btn.title = `Connecté comme ${u} — clique pour déconnecter`;
+    } else {
+      btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>`;
+      btn.classList.remove('logged');
+      btn.setAttribute('aria-label', 'Se connecter');
+      btn.title = 'Se connecter';
+    }
+  }
+
+  if (wb) {
+    if (u) {
+      wb.querySelector('.wb-user').textContent = u;
+      wb.hidden = false;
+      document.body.classList.add('has-welcome-bar');
+    } else {
+      wb.hidden = true;
+      document.body.classList.remove('has-welcome-bar');
+    }
   }
 }
 

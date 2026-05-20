@@ -7,7 +7,7 @@
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';
 import { TRIVIA } from './trivia.js';
 import { mountChatbot } from './chatbot.js';
-import { mountAuth, currentUser, onAuthChange } from './auth.js';
+import { mountAuth } from './auth.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
 
@@ -113,9 +113,8 @@ async function init() {
 
   // Mount the M. PELLETIER chatbot
   mountChatbot();
-  // Mount the local auth flow (login / signup / welcome banner)
+  // Mount the local auth flow (login / signup / persistent welcome bar)
   mountAuth();
-  onAuthChange(() => { if ((state.currentRoute || '/') === '/') renderHome(); });
 }
 
 function prettifyTitle(s) {
@@ -432,20 +431,9 @@ function renderHome() {
   const recent = getRecent().slice(0, 6);
   const favs = getFavorites().slice(0, 6);
 
-  const user = currentUser();
-  const welcomeBanner = user ? `
-    <div class="welcome-banner">
-      <span class="wb-icon" aria-hidden="true">👋</span>
-      <div class="wb-body">
-        <strong>Bienvenue ${escapeHtml(user)} !</strong>
-        <em>Bon courage 😎</em>
-      </div>
-    </div>` : '';
-
   const main = document.getElementById('main');
   main.innerHTML = `
     <div class="main-inner">
-      ${welcomeBanner}
       <section class="hero">
         ${heroDeco()}
         <div class="eyebrow">Programme officiel · Spécialité · Première Générale</div>

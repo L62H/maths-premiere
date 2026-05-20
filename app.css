@@ -31,6 +31,7 @@
 
   /* Layout */
   --appbar-h:  64px;
+  --wb-h:      0px;  /* welcome-bar visible quand connecté */
   --side-w:    284px;
   --max-w:     1280px;
 
@@ -93,7 +94,7 @@ svg { display: block; width: 20px; height: 20px; }
 
 /* ===== App bar ===== */
 .appbar {
-  position: sticky; top: 0; z-index: 50;
+  position: sticky; top: var(--wb-h); z-index: 50;
   height: var(--appbar-h);
   display: flex; align-items: center; gap: 12px;
   padding: 0 18px;
@@ -198,11 +199,11 @@ svg { display: block; width: 20px; height: 20px; }
 /* ===== Sidebar ===== */
 .sidebar {
   position: fixed;
-  top: var(--appbar-h);
+  top: calc(var(--wb-h) + var(--appbar-h));
   left: 0;
   width: var(--side-w);
-  height: calc(100vh - var(--appbar-h));
-  height: calc(100dvh - var(--appbar-h));
+  height: calc(100vh - var(--wb-h) - var(--appbar-h));
+  height: calc(100dvh - var(--wb-h) - var(--appbar-h));
   background: var(--bg);
   border-right: 1px solid var(--line);
   overflow: hidden;
@@ -1361,40 +1362,135 @@ a.right:hover { color: var(--gold); }
 }
 .auth-note strong { color: var(--text-2); }
 
-/* Welcome banner on the home page after login */
-.welcome-banner {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 18px;
-  margin: 0 0 24px;
-  background: linear-gradient(135deg, var(--gold-soft), color-mix(in srgb, var(--gold-soft) 60%, var(--surface)));
-  border: 1px solid var(--gold-line);
-  border-radius: 14px;
-  position: relative;
+/* ============================================================
+   Bandeau de bienvenue persistant — collé tout en haut de l'écran
+   (mobile + PC), visible sur toutes les pages quand l'utilisateur
+   est connecté.
+   ============================================================ */
+body.has-welcome-bar { --wb-h: 44px; }
+@media (max-width: 640px) {
+  body.has-welcome-bar { --wb-h: 40px; }
+}
+
+.welcome-bar {
+  position: sticky; top: 0;
+  z-index: 60;            /* au-dessus de l'app-bar */
+  height: var(--wb-h);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 18px;
+  background: linear-gradient(90deg, var(--gold-2), var(--gold));
+  color: #fff;
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 70%, #000 30%);
+  box-shadow: 0 1px 0 rgba(0,0,0,.05);
+  font-size: 14px;
   overflow: hidden;
 }
-.welcome-banner::before {
-  content: '';
-  position: absolute; right: -10px; top: -10px;
-  width: 80px; height: 80px;
-  background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
-  opacity: .15;
-  pointer-events: none;
+[data-theme="dark"] .welcome-bar {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--gold) 70%, #000),
+    color-mix(in srgb, var(--gold-2) 75%, #000));
+  color: var(--gold-3);
+  border-bottom: 1px solid rgba(0,0,0,.4);
 }
-.welcome-banner .wb-icon { font-size: 28px; flex: none; }
-.welcome-banner .wb-body { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.welcome-banner strong {
-  font-family: var(--serif);
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -.005em;
-  color: var(--text);
+.welcome-bar .wb-icon { font-size: 18px; flex: none; line-height: 1; }
+.welcome-bar .wb-text {
+  flex: 1; min-width: 0;
+  display: flex; align-items: baseline; gap: 10px;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
-.welcome-banner em {
-  font-family: var(--serif);
+.welcome-bar .wb-text strong {
+  font-weight: 700;
+  letter-spacing: .005em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.welcome-bar .wb-text em {
   font-style: italic;
-  font-size: 14px;
-  color: var(--text-2);
+  font-family: var(--serif);
+  font-size: 15px;
+  opacity: .92;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.welcome-bar .wb-logout {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 12.5px; font-weight: 600;
+  cursor: pointer;
+  transition: background var(--fast) var(--ease);
+}
+.welcome-bar .wb-logout:hover { background: rgba(255,255,255,.28); }
+.welcome-bar .wb-logout svg { width: 15px; height: 15px; }
+
+@media (max-width: 640px) {
+  .welcome-bar { padding: 0 12px; gap: 8px; font-size: 13px; }
+  .welcome-bar .wb-text { gap: 6px; }
+  .welcome-bar .wb-text em { font-size: 13.5px; }
+  .welcome-bar .wb-logout .wb-logout-label { display: none; }
+  .welcome-bar .wb-logout { padding: 5px 7px; }
+}
+
+/* En mode plein écran natif, on cache aussi le bandeau (immersif) */
+html:fullscreen .welcome-bar,
+:fullscreen .welcome-bar { display: none; }
+
+/* ============================================================
+   Bloc de confiance dans le modal — pour rassurer l'utilisateur
+   ============================================================ */
+.auth-trust {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px;
+  margin: 0 0 16px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  border-radius: 12px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.auth-trust > svg {
+  width: 22px; height: 22px;
+  color: var(--gold);
+  flex: none;
+  margin-top: 2px;
+}
+.auth-trust strong {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .005em;
+  margin-bottom: 2px;
+}
+.auth-trust em { font-style: italic; color: var(--gold); font-weight: 600; }
+
+.auth-switch {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.auth-switch a { color: var(--gold); font-weight: 600; }
+.auth-switch a:hover { text-decoration: underline; }
+
+.auth-skip {
+  display: block;
+  width: 100%;
+  margin: 14px 0 0;
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  color: var(--text-3);
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--fast) var(--ease);
+}
+.auth-skip:hover { color: var(--text-2); }
 
 /* ============================================================
    M. PELLETIER — chatbot UI
